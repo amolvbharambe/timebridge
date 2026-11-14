@@ -423,11 +423,11 @@
 
       targetTag.textContent = 'TO';
       targetTitle.textContent = `${cstCfg.name}`;
-      targetOffsetBadge.textContent = cstCfg.code;
+      targetOffsetBadge.textContent = cstCfg.code === 'UTC' ? 'UTC+0' : cstCfg.code;
     } else {
       sourceTag.textContent = 'FROM';
       sourceTitle.textContent = `${cstCfg.name}`;
-      sourceOffsetBadge.textContent = cstCfg.code;
+      sourceOffsetBadge.textContent = cstCfg.code === 'UTC' ? 'UTC+0' : cstCfg.code;
 
       targetTag.textContent = 'TO';
       targetTitle.textContent = 'Indian Standard Time (IST)';
@@ -479,7 +479,9 @@
     }
 
     // DST / Standard info pill
-    if (currentCstVariant === 'US_AUTO') {
+    if (currentCstVariant === 'UTC') {
+      dstIndicatorPill.textContent = 'UTC Standard Time (UTC+0, No DST)';
+    } else if (currentCstVariant === 'US_AUTO') {
       const tzName = isIstSource ? targetParts.timeZoneName : sourceParts.timeZoneName;
       if (tzName === 'CDT') {
         dstIndicatorPill.textContent = 'Daylight Saving Time (CDT, UTC-5)';
@@ -503,7 +505,9 @@
     if (secondaryTzPill) {
       const companionEst = getTzParts(utcDate, 'EST');
       const companionCst = getTzParts(utcDate, 'CST');
-      if (currentCstVariant === 'US_EST') {
+      if (currentCstVariant === 'UTC') {
+        secondaryTzPill.textContent = `US: Central ${companionCst.timeFormatted} • Eastern ${companionEst.timeFormatted}`;
+      } else if (currentCstVariant === 'US_EST') {
         secondaryTzPill.textContent = `US Central (${companionCst.timeZoneName || 'CST'}): ${companionCst.timeFormatted}`;
       } else {
         secondaryTzPill.textContent = `US Eastern (${companionEst.timeZoneName || 'EST'}): ${companionEst.timeFormatted}`;
@@ -846,6 +850,10 @@
       const estP = getTzParts(colUtcDate, 'EST');
       const estTimeStr = `${(estP.hour12 < 10 ? '0' : '') + estP.hour12}:00 ${estP.dayPeriod}`;
 
+      // UTC equivalent
+      const utcP = getTzParts(colUtcDate, 'UTC');
+      const utcTimeStr = `${(utcP.hour12 < 10 ? '0' : '') + utcP.hour12}:00 ${utcP.dayPeriod}`;
+
       // Determine meeting suitability
       const istWork = getWorkStatus(h);
       const cstWork = getWorkStatus(cstH);
@@ -889,6 +897,7 @@
         <td><strong>${istTimeStr}</strong></td>
         <td><strong>${cstTimeStr}</strong></td>
         <td><strong style="color: #c084fc;">${estTimeStr}</strong></td>
+        <td><strong style="color: #38bdf8;">${utcTimeStr}</strong></td>
         <td><span class="badge">${dayOffsetLabel}</span></td>
         <td><span class="suitability-pill ${pillClass}">${suitabilityText}</span></td>
         <td style="font-family: var(--font-main); color: var(--text-secondary); font-size: 0.84rem;">${statusDesc}</td>
