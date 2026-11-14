@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>TimeBridge — IST ⇄ CST Converter & Time Interval Calculator</title>
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="TimeBridge">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-dark">
+  <div class="app-container">
+    <!-- Top Navigation / Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-title">TimeBridge</h1>
+          <p class="brand-subtitle">IST ⇄ CST Converter & Date-Time Interval Calculator</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Live Clocks -->
+        <div class="live-clocks">
+          <!-- UTC Clock Tile -->
+          <div class="clock-card" id="utcClockCard">
+            <div class="clock-label">
+              <span class="flag-dot utc"></span>
+              <span class="tz-code">UTC</span>
+              <span class="utc-badge">UTC+0</span>
+            </div>
+            <div class="clock-time" id="utcLiveTime">--:--:--</div>
+            <div class="clock-date" id="utcLiveDate">Loading date...</div>
+          </div>
+
+          <!-- GMT Clock Tile -->
+          <div class="clock-card" id="gmtClockCard">
+            <div class="clock-label">
+              <span class="flag-dot gmt"></span>
+              <span class="tz-code">GMT (London)</span>
+              <span class="utc-badge" id="gmtOffsetBadge">UTC+0</span>
+            </div>
+            <div class="clock-time" id="gmtLiveTime">--:--:--</div>
+            <div class="clock-date" id="gmtLiveDate">Loading date...</div>
+          </div>
+
+          <!-- IST Clock Tile -->
+          <div class="clock-card" id="istClockCard">
+            <div class="clock-label">
+              <span class="flag-dot in"></span>
+              <span class="tz-code">IST (India)</span>
+              <span class="utc-badge">UTC+5:30</span>
+            </div>
+            <div class="clock-time" id="istLiveTime">--:--:--</div>
+            <div class="clock-date" id="istLiveDate">Loading date...</div>
+          </div>
+
+          <!-- CST Clock Tile -->
+          <div class="clock-card" id="cstClockCard">
+            <div class="clock-label">
+              <span class="flag-dot us"></span>
+              <span class="tz-code" id="cstLabelCode">CST (US Central)</span>
+              <span class="utc-badge" id="cstOffsetBadge">UTC-6</span>
+            </div>
+            <div class="clock-time" id="cstLiveTime">--:--:--</div>
+            <div class="clock-date" id="cstLiveDate">Loading date...</div>
+          </div>
+
+          <!-- EST Clock Tile -->
+          <div class="clock-card" id="estClockCard">
+            <div class="clock-label">
+              <span class="flag-dot est"></span>
+              <span class="tz-code" id="estLabelCode">EST (US Eastern)</span>
+              <span class="utc-badge" id="estOffsetBadge">UTC-5</span>
+            </div>
+            <div class="clock-time" id="estLiveTime">--:--:--</div>
+            <div class="clock-date" id="estLiveDate">Loading date...</div>
+          </div>
+        </div>
+
+        <button id="themeToggleBtn" class="icon-btn" title="Toggle Theme" aria-label="Toggle Theme">
+          <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Mode Tabs -->
+    <nav class="nav-tabs" role="tablist">
+      <button class="tab-btn active" data-tab="converterTab" role="tab" aria-selected="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+        <span>IST ⇄ CST Converter</span>
+      </button>
+      <button class="tab-btn" data-tab="calculatorTab" role="tab" aria-selected="false">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="18"></line><path d="M16 10h.01"></path><path d="M12 10h.01"></path><path d="M8 10h.01"></path><path d="M12 14h.01"></path><path d="M8 14h.01"></path><path d="M12 18h.01"></path><path d="M8 18h.01"></path></svg>
+        <span>Time Between Dates Calculator</span>
+      </button>
+      <button class="tab-btn" data-tab="matrixTab" role="tab" aria-selected="false">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        <span>24-Hour Overlap Matrix</span>
+      </button>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="tab-content-container">
+
+      <!-- ============================================== -->
+      <!-- TAB 1: CONVERTER (IST <-> CST)                 -->
+      <!-- ============================================== -->
+      <section id="converterTab" class="tab-panel active" role="tabpanel">
+        
+        <!-- Target Timezone Variant Selector & Info Strip -->
+        <div class="cst-config-strip">
+          <div class="config-label">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            <span>Target US / International Timezone:</span>
+          </div>
+          <div class="config-options">
+            <label class="radio-label">
+              <input type="radio" name="cstVariant" value="US_AUTO" checked>
+              <span>US Central (CST UTC-6 / CDT UTC-5)</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="cstVariant" value="US_EST">
+              <span>US Eastern (EST UTC-5 / EDT UTC-4)</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="cstVariant" value="US_FIXED_CST">
+              <span>Fixed CST (UTC-6)</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="cstVariant" value="CHINA_CST">
+              <span>China CST (UTC+8)</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="converter-grid">
+          <!-- Source Input Box -->
+          <div class="card converter-card" id="sourceCard">
+            <div class="card-header">
+              <div class="card-title-group">
+                <span class="direction-tag" id="sourceTag">FROM</span>
+                <h3 class="card-title" id="sourceTitle">Indian Standard Time (IST)</h3>
+              </div>
+              <span class="badge" id="sourceOffsetBadge">UTC +05:30</span>
+            </div>
+
+            <div class="card-body">
+              <div class="input-row">
+                <div class="form-group flex-1">
+                  <label for="convDate">Date</label>
+                  <input type="date" id="convDate" class="form-input">
+                </div>
+                <div class="form-group flex-1">
+                  <label for="convTime">Time</label>
+                  <input type="time" id="convTime" class="form-input" step="60">
+                </div>
+              </div>
+
+              <!-- Quick Time Preset Chips -->
+              <div class="chip-group">
+                <span class="chip-label">Quick Set:</span>
+                <button type="button" class="chip-btn" id="btnSetNow">Now</button>
+                <button type="button" class="chip-btn" id="btnSub1m" title="Decrement 1 minute">-1 min</button>
+                <button type="button" class="chip-btn" id="btnAdd1m" title="Increment 1 minute">+1 min</button>
+                <button type="button" class="chip-btn" id="btnSub1h">-1 hr</button>
+                <button type="button" class="chip-btn" id="btnAdd1h">+1 hr</button>
+                <button type="button" class="chip-btn" id="btnMorning9">9:00 AM</button>
+                <button type="button" class="chip-btn" id="btnAfternoon2">2:00 PM</button>
+                <button type="button" class="chip-btn" id="btnEvening6">6:00 PM</button>
+              </div>
+
+              <!-- Working Hours status for source -->
+              <div class="work-status-banner" id="sourceWorkStatus">
+                <span class="status-indicator"></span>
+                <span class="status-text">Checking business hours...</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Swap Button in the center -->
+          <div class="converter-swap-wrapper">
+            <button id="swapDirectionBtn" class="swap-btn" title="Swap Conversion Direction (IST ⇄ CST)">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M7 16V4M7 4L3 8M7 4L11 8M17 8V20M17 20L21 16M17 20L13 16"/>
+              </svg>
+            </button>
+            <span class="swap-caption">Swap</span>
+          </div>
+
+          <!-- Target Output Box -->
+          <div class="card converter-card highlight-card" id="targetCard">
+            <div class="card-header">
+              <div class="card-title-group">
+                <span class="direction-tag" id="targetTag">TO</span>
+                <h3 class="card-title" id="targetTitle">Central Standard Time (CST)</h3>
+              </div>
+              <span class="badge" id="targetOffsetBadge">UTC -06:00</span>
+            </div>
+
+            <div class="card-body">
+              <div class="converted-result-box">
+                <div class="result-day-badge-wrap">
+                  <span class="day-rel-badge" id="dayRelativeBadge">Same Day</span>
+                  <span class="dst-pill" id="dstIndicatorPill">Standard Time (CST)</span>
+                </div>
+
+                <div class="big-time-display" id="targetTimeResult">10:23 AM</div>
+                <div class="big-date-display" id="targetDateResult">Friday, Nov 13, 2026</div>
+
+                <div class="offset-summary" id="offsetSummaryText">
+                  IST is 11 hours and 30 minutes ahead of CST
+                </div>
+
+                <!-- Companion US Timezone Display -->
+                <div class="secondary-tz-wrap" style="margin-top: 10px;">
+                  <span class="secondary-tz-pill" id="secondaryTzPill">US Eastern (EST): 11:23 AM</span>
+                </div>
+              </div>
+
+              <!-- Working Hours status for target -->
+              <div class="work-status-banner" id="targetWorkStatus">
+                <span class="status-indicator"></span>
+                <span class="status-text">Checking business hours...</span>
+              </div>
+
+              <!-- Action buttons -->
+              <div class="card-actions-row">
+                <button id="copyConvertedBtn" class="action-btn">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                  <span>Copy Result</span>
+                </button>
+                <div class="copy-alert" id="copyAlert">Copied to clipboard!</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 24-Hour Interactive Visual Scrubber Bar -->
+        <div class="card timeline-scrubber-card">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">Interactive 24-Hour Slider</h3>
+              <p class="card-subtitle">Scrub across the day with 1-minute precision or use the ±1 min stepper buttons</p>
+            </div>
+            <div class="legend-group">
+              <span class="legend-item"><span class="legend-dot work"></span> Business Hours (9am-6pm)</span>
+              <span class="legend-item"><span class="legend-dot sleep"></span> Night (11pm-7am)</span>
+              <span class="legend-item"><span class="legend-dot golden"></span> Golden Overlap Window</span>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <!-- Fine-Tuning 1-Minute Stepper Bar -->
+            <div class="slider-controls-bar">
+              <div class="stepper-group">
+                <button type="button" class="stepper-btn" id="btnScrubSub5m" title="Decrement 5 minutes">-5 min</button>
+                <button type="button" class="stepper-btn primary" id="btnScrubSub1m" title="Decrement 1 minute">◀ -1 min</button>
+              </div>
+              <div class="scrub-current-badge">
+                <span class="scrub-indicator-dot"></span>
+                <span id="scrubberCurrentDisplay">12:00 PM</span>
+              </div>
+              <div class="stepper-group">
+                <button type="button" class="stepper-btn primary" id="btnScrubAdd1m" title="Increment 1 minute">+1 min ▶</button>
+                <button type="button" class="stepper-btn" id="btnScrubAdd5m" title="Increment 5 minutes">+5 min</button>
+              </div>
+            </div>
+
+            <div class="slider-wrapper">
+              <input type="range" id="hourScrubber" min="0" max="1439" step="1" value="720" class="time-range-slider" aria-label="1-minute 24-hour time scrubber">
+              <div class="scrubber-labels" id="scrubberLabels"></div>
+            </div>
+
+            <div class="dual-timeline-track">
+              <!-- UTC Track -->
+              <div class="track-row">
+                <div class="track-header">
+                  <span class="flag-dot utc"></span>
+                  <strong>UTC</strong>
+                </div>
+                <div class="timeline-cells" id="utcTimelineCells"></div>
+              </div>
+              <!-- GMT Track -->
+              <div class="track-row">
+                <div class="track-header">
+                  <span class="flag-dot gmt"></span>
+                  <strong>GMT</strong>
+                </div>
+                <div class="timeline-cells" id="gmtTimelineCells"></div>
+              </div>
+              <!-- IST Track -->
+              <div class="track-row">
+                <div class="track-header">
+                  <span class="flag-dot in"></span>
+                  <strong>IST</strong>
+                </div>
+                <div class="timeline-cells" id="istTimelineCells"></div>
+              </div>
+              <!-- CST Track -->
+              <div class="track-row">
+                <div class="track-header">
+                  <span class="flag-dot us"></span>
+                  <strong id="cstTrackCode">CST</strong>
+                </div>
+                <div class="timeline-cells" id="cstTimelineCells"></div>
+              </div>
+              <!-- EST Track -->
+              <div class="track-row">
+                <div class="track-header">
+                  <span class="flag-dot est"></span>
+                  <strong>EST</strong>
+                </div>
+                <div class="timeline-cells" id="estTimelineCells"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ============================================== -->
+      <!-- TAB 2: TIME INTERVAL CALCULATOR                -->
+      <!-- ============================================== -->
+      <section id="calculatorTab" class="tab-panel" role="tabpanel">
+        
+        <div class="interval-intro">
+          <h2>Time & Date Difference Calculator</h2>
+          <p>Compute the exact duration between any two dates and times, with custom timezones (IST, CST, UTC, etc.), business days, and total breakdown.</p>
+        </div>
+
+        <div class="interval-input-grid">
+          <!-- Start Date & Time -->
+          <div class="card interval-card">
+            <div class="card-header">
+              <div class="step-badge">1</div>
+              <div>
+                <h3 class="card-title">Start Date & Time</h3>
+                <p class="card-subtitle">Select beginning timestamp</p>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="form-group">
+                <label for="calcStartDate">Date</label>
+                <input type="date" id="calcStartDate" class="form-input">
+              </div>
+              <div class="form-group">
+                <label for="calcStartTime">Time</label>
+                <input type="time" id="calcStartTime" class="form-input" step="1">
+              </div>
+              <div class="form-group">
+                <label for="calcStartTz">Timezone</label>
+                <select id="calcStartTz" class="form-select">
+                  <option value="Asia/Kolkata" selected>IST (India, UTC+5:30)</option>
+                  <option value="America/Chicago">CST/CDT (US Central)</option>
+                  <option value="UTC">UTC (Universal Coordinated Time)</option>
+                  <option value="LOCAL">My Local Browser Time</option>
+                  <option value="Asia/Shanghai">China CST (UTC+8:00)</option>
+                  <option value="America/New_York">EST/EDT (US Eastern)</option>
+                  <option value="America/Los_Angeles">PST/PDT (US Pacific)</option>
+                  <option value="Europe/London">GMT/BST (London)</option>
+                </select>
+              </div>
+              <div class="chip-group mt-2">
+                <button type="button" class="chip-btn" id="btnStartNow">Set to Now</button>
+                <button type="button" class="chip-btn" id="btnStartToday9">Today 9:00 AM</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Swap / Direct button -->
+          <div class="calc-middle-action">
+            <button id="calcSwapBtn" class="swap-btn" title="Swap Start and End">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4M7 4L3 8M7 4L11 8M17 8V20M17 20L21 16M17 20L13 16"/></svg>
+            </button>
+            <div class="live-toggle-wrap">
+              <label class="toggle-switch" title="Auto update duration live against current time">
+                <input type="checkbox" id="liveTickToggle">
+                <span class="toggle-slider"></span>
+              </label>
+              <span class="toggle-text">Live Tick</span>
+            </div>
+          </div>
+
+          <!-- End Date & Time -->
+          <div class="card interval-card">
+            <div class="card-header">
+              <div class="step-badge">2</div>
+              <div>
+                <h3 class="card-title">End Date & Time</h3>
+                <p class="card-subtitle">Select ending timestamp</p>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="form-group">
+                <label for="calcEndDate">Date</label>
+                <input type="date" id="calcEndDate" class="form-input">
+              </div>
+              <div class="form-group">
+                <label for="calcEndTime">Time</label>
+                <input type="time" id="calcEndTime" class="form-input" step="1">
+              </div>
+              <div class="form-group">
+                <label for="calcEndTz">Timezone</label>
+                <select id="calcEndTz" class="form-select">
+                  <option value="Asia/Kolkata">IST (India, UTC+5:30)</option>
+                  <option value="America/Chicago" selected>CST/CDT (US Central)</option>
+                  <option value="UTC">UTC (Universal Coordinated Time)</option>
+                  <option value="LOCAL">My Local Browser Time</option>
+                  <option value="Asia/Shanghai">China CST (UTC+8:00)</option>
+                  <option value="America/New_York">EST/EDT (US Eastern)</option>
+                  <option value="America/Los_Angeles">PST/PDT (US Pacific)</option>
+                  <option value="Europe/London">GMT/BST (London)</option>
+                </select>
+              </div>
+              <div class="chip-group mt-2">
+                <button type="button" class="chip-btn" id="btnEndNow">Set to Now</button>
+                <button type="button" class="chip-btn" id="btnEndPlus1d">+24 Hours</button>
+                <button type="button" class="chip-btn" id="btnEndPlus1w">+1 Week</button>
+                <button type="button" class="chip-btn" id="btnEndPlus1m">+1 Month</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interval Results -->
+        <div class="card interval-results-card">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">Calculated Duration</h3>
+              <p class="card-subtitle" id="calcDirectionNote">Normalized in UTC epoch</p>
+            </div>
+            <span class="badge" id="calcSignBadge">Future Event</span>
+          </div>
+
+          <div class="card-body">
+            <!-- Hero Duration Big Banner -->
+            <div class="hero-duration-banner">
+              <div class="duration-primary" id="primaryDurationText">
+                <span class="unit-group"><strong id="valDays">0</strong><span class="unit">days</span></span>
+                <span class="unit-group"><strong id="valHours">0</strong><span class="unit">hours</span></span>
+                <span class="unit-group"><strong id="valMinutes">0</strong><span class="unit">mins</span></span>
+                <span class="unit-group"><strong id="valSeconds">0</strong><span class="unit">secs</span></span>
+              </div>
+              <div class="human-readable-phrase" id="humanReadablePhrase">
+                Exact duration calculated across timezones
+              </div>
+
+              <!-- Copy Duration Button -->
+              <div class="duration-action-row">
+                <button type="button" id="copyDurationBtn" class="action-btn duration-copy-btn">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                  <span>Copy Duration</span>
+                </button>
+                <span class="copy-alert" id="durationCopyAlert">Duration copied to clipboard!</span>
+              </div>
+            </div>
+
+            <!-- Detailed Stat Cards Grid -->
+            <div class="stat-cards-grid">
+              <div class="stat-card">
+                <div class="stat-icon-wrap blue">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                </div>
+                <div class="stat-data">
+                  <div class="stat-value" id="statTotalHours">0 hrs</div>
+                  <div class="stat-label">Total Hours</div>
+                </div>
+              </div>
+
+              <div class="stat-card">
+                <div class="stat-icon-wrap purple">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                </div>
+                <div class="stat-data">
+                  <div class="stat-value" id="statTotalDays">0 days</div>
+                  <div class="stat-label">Decimal Days</div>
+                </div>
+              </div>
+
+              <div class="stat-card">
+                <div class="stat-icon-wrap emerald">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                </div>
+                <div class="stat-data">
+                  <div class="stat-value" id="statBusinessDays">0 days</div>
+                  <div class="stat-label">Working Days (Mon-Fri)</div>
+                </div>
+              </div>
+
+              <div class="stat-card">
+                <div class="stat-icon-wrap orange">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                </div>
+                <div class="stat-data">
+                  <div class="stat-value" id="statWorkHours">0 hrs</div>
+                  <div class="stat-label">Est. Working Hours (8h/day)</div>
+                </div>
+              </div>
+
+              <div class="stat-card">
+                <div class="stat-icon-wrap cyan">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                </div>
+                <div class="stat-data">
+                  <div class="stat-value" id="statTotalMinutes">0 mins</div>
+                  <div class="stat-label">Total Minutes</div>
+                </div>
+              </div>
+
+              <div class="stat-card">
+                <div class="stat-icon-wrap rose">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                </div>
+                <div class="stat-data">
+                  <div class="stat-value" id="statTotalSeconds">0 secs</div>
+                  <div class="stat-label">Total Seconds</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Contextual Timezone Conversion Table for Start and End -->
+            <div class="calc-tz-table-wrap">
+              <h4>Start & End Timestamp in Key Timezones</h4>
+              <div class="table-responsive">
+                <table class="tz-table">
+                  <thead>
+                    <tr>
+                      <th>Point</th>
+                      <th>IST (India UTC+5:30)</th>
+                      <th>CST/CDT (US Central)</th>
+                      <th>EST/EDT (US Eastern)</th>
+                      <th>UTC</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><strong>Start Point</strong></td>
+                      <td id="tblStartIST">-</td>
+                      <td id="tblStartCST">-</td>
+                      <td id="tblStartEST">-</td>
+                      <td id="tblStartUTC">-</td>
+                    </tr>
+                    <tr>
+                      <td><strong>End Point</strong></td>
+                      <td id="tblEndIST">-</td>
+                      <td id="tblEndCST">-</td>
+                      <td id="tblEndEST">-</td>
+                      <td id="tblEndUTC">-</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ============================================== -->
+      <!-- TAB 3: 24-HOUR OVERLAP MATRIX                  -->
+      <!-- ============================================== -->
+      <section id="matrixTab" class="tab-panel" role="tabpanel">
+        <div class="interval-intro">
+          <h2>IST & CST 24-Hour Schedule & Meeting Planner</h2>
+          <p>Find the optimal call window between India and US Central Time. Highlights show overlapping working hours and convenient call times.</p>
+        </div>
+
+        <div class="card matrix-table-card">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">Hourly Side-by-Side Reference</h3>
+              <p class="card-subtitle">Based on selected Central Time variant (<span id="matrixVariantNotice">US Central</span>)</p>
+            </div>
+            <div class="legend-group">
+              <span class="legend-item"><span class="legend-dot work"></span> Both Working (9am-6pm)</span>
+              <span class="legend-item"><span class="legend-dot golden"></span> Convenient Handover</span>
+              <span class="legend-item"><span class="legend-dot sleep"></span> Sleeping Hours</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="matrix-table" id="matrixTable">
+                <thead>
+                  <tr>
+                    <th>IST (India)</th>
+                    <th>CST (Central Time)</th>
+                    <th>EST (Eastern Time)</th>
+                    <th>Day Offset</th>
+                    <th>Meeting Suitability</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="matrixTableBody">
+                  <!-- Generated dynamically in app.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>TimeBridge • Precise IST (Asia/Kolkata) to CST/CDT (America/Chicago) calculations powered by native ECMAScript Intl time engine.</p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').then((reg) => {
+          console.log('TimeBridge ServiceWorker registered:', reg.scope);
+        }).catch((err) => {
+          console.log('ServiceWorker registration omitted:', err);
+        });
+      });
+    }
+  </script>
+</body>
+</html>
