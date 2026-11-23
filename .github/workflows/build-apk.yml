@@ -36,12 +36,13 @@ jobs:
         working-directory: android
         run: |
           gradle assembleDebug --stacktrace
+          find app/build/outputs/apk/debug -name "*.apk" -exec cp {} app/build/outputs/apk/debug/TimeBridge.apk \;
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: TimeBridge-debug-apk
-          path: android/app/build/outputs/apk/debug/*.apk
+          name: TimeBridge-apk
+          path: android/app/build/outputs/apk/debug/TimeBridge.apk
 
       - name: Publish to GitHub Releases
         uses: softprops/action-gh-release@v2
@@ -50,7 +51,7 @@ jobs:
           name: TimeBridge Android App v1.0.0
           body: |
             ### 📱 TimeBridge Android APK
-            Download the `app-debug.apk` file below and open it on your Android phone to install!
-          files: android/app/build/outputs/apk/debug/*.apk
+            Download the `TimeBridge.apk` file below and open it on your Android phone to install!
+          files: android/app/build/outputs/apk/debug/TimeBridge.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

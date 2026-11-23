@@ -5,6 +5,9 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build TimeBridge APK
@@ -20,21 +23,35 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v4
-
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: '8.5'
 
+      - name: Accept Android SDK Licenses
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses || true
+
       - name: Build Debug APK
         working-directory: android
         run: |
           gradle assembleDebug --stacktrace
+          find app/build/outputs/apk/debug -name "*.apk" -exec cp {} app/build/outputs/apk/debug/TimeBridge.apk \;
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: TimeBridge-debug-apk
-          path: android/app/build/outputs/apk/debug/*.apk
+          name: TimeBridge-apk
+          path: android/app/build/outputs/apk/debug/TimeBridge.apk
+
+      - name: Publish to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0
+          name: TimeBridge Android App v1.0.0
+          body: |
+            ### 📱 TimeBridge Android APK
+            Download the `TimeBridge.apk` file below and open it on your Android phone to install!
+          files: android/app/build/outputs/apk/debug/TimeBridge.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
