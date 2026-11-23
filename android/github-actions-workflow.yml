@@ -48,14 +48,14 @@ jobs:
       - name: Publish to GitHub Releases
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.1
-          name: TimeBridge Android App v1.0.1
+          tag_name: v1.0.2
+          name: TimeBridge Android App v1.0.2
           body: |
-            ### 📱 TimeBridge Android APK (v1.0.1)
+            ### 📱 TimeBridge Android APK (v1.0.2)
 
             Download **TimeBridge.apk** below and tap it to install on your Android device.
 
-            > ℹ️ **Installation Tip:** If you previously had a test/debug version installed, please uninstall it first so Android can install this signed production release cleanly.
+            > ℹ️ **Installation Tip:** If you previously had an earlier version installed, please uninstall it first so Android can install this release cleanly.
           files: android/dist/TimeBridge.apk
           make_latest: true
         env:
