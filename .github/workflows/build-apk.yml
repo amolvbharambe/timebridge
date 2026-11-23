@@ -32,26 +32,31 @@ jobs:
         run: |
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses || true
 
-      - name: Build Debug APK
+      - name: Build Signed Release APK
         working-directory: android
         run: |
-          gradle assembleDebug --stacktrace
-          find app/build/outputs/apk/debug -name "*.apk" -exec cp {} app/build/outputs/apk/debug/TimeBridge.apk \;
+          gradle assembleRelease --stacktrace
+          mkdir -p dist
+          find app/build/outputs/apk/release -name "*.apk" -exec cp {} dist/TimeBridge.apk \;
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: TimeBridge-apk
-          path: android/app/build/outputs/apk/debug/TimeBridge.apk
+          path: android/dist/TimeBridge.apk
 
       - name: Publish to GitHub Releases
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.0
-          name: TimeBridge Android App v1.0.0
+          tag_name: v1.0.1
+          name: TimeBridge Android App v1.0.1
           body: |
-            ### 📱 TimeBridge Android APK
-            Download the `TimeBridge.apk` file below and open it on your Android phone to install!
-          files: android/app/build/outputs/apk/debug/TimeBridge.apk
+            ### 📱 TimeBridge Android APK (v1.0.1)
+
+            Download **TimeBridge.apk** below and tap it to install on your Android device.
+
+            > ℹ️ **Installation Tip:** If you previously had a test/debug version installed, please uninstall it first so Android can install this signed production release cleanly.
+          files: android/dist/TimeBridge.apk
+          make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
