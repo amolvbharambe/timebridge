@@ -5,8 +5,9 @@
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "background_color": "#0b0f19",
-  "theme_color": "#4f46e5",
+  "theme_color": "#0b0f19",
   "orientation": "any",
   "categories": ["productivity", "utilities"],
   "icons": [
@@ -30,6 +31,29 @@
       "src": "icons/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "IST to CST Converter",
+      "short_name": "Converter",
+      "description": "Convert times between IST, CST, EST and UTC",
+      "url": "./index.html#converter",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Date & Time Difference",
+      "short_name": "Difference",
+      "description": "Calculate exact duration between dates and times",
+      "url": "./index.html#calculator",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "24-Hour Overlap Matrix",
+      "short_name": "Matrix",
+      "description": "24-hour side-by-side team schedule planner",
+      "url": "./index.html#matrix",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

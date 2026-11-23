@@ -65,40 +65,47 @@ def main():
     # Enable SO_REUSEADDR so restarted servers can immediately bind
     socketserver.TCPServer.allow_reuse_address = True
 
-    try:
-        with socketserver.TCPServer(("0.0.0.0", PORT), CustomHTTPRequestHandler) as httpd:
-            print("\n" + "=" * 64)
-            print(" 🚀 TimeBridge Server is Live on your Office VPN / Network!")
-            print("=" * 64)
-            print(f"\n📍 Port: {PORT}")
-            print("\n🔗 Share these URLs with your team members on the VPN:\n")
-            
-            seen_ips = set()
-            for iface, ip in ips:
-                if ip not in seen_ips:
-                    seen_ips.add(ip)
-                    tag = " (VPN / Network)" if iface != "lo0" else " (Internal)"
-                    print(f"   👉 http://{ip}:{PORT}{tag}")
-            
-            print(f"\n   💻 Local access on your Mac:")
-            print(f"      http://localhost:{PORT}")
-            print("\n" + "-" * 64)
-            print(" 💡 Tips for sharing:")
-            print(" 1. Teammates must be connected to the same office VPN.")
-            print(" 2. Keep this terminal window open while teammates are using it.")
-            print(" 3. Press [Ctrl + C] anytime to stop the server.")
-            print("=" * 64 + "\n")
-            
-            httpd.serve_forever()
+    port = PORT
+    max_attempts = 15
 
-    except OSError as e:
-        if e.errno == 48: # Address already in use
-            print(f"\n❌ Error: Port {PORT} is already in use by another program.")
-            print(f"👉 Try running on a different port: python3 serve.py 8081\n")
-        else:
-            print(f"\n❌ Server error: {e}\n")
-    except KeyboardInterrupt:
-        print("\n🛑 TimeBridge server stopped gracefully. Goodbye!\n")
+    for attempt in range(max_attempts):
+        try:
+            with socketserver.TCPServer(("0.0.0.0", port), CustomHTTPRequestHandler) as httpd:
+                print("\n" + "=" * 64)
+                print(" 🚀 TimeBridge Server is Live on your Office VPN / Network!")
+                print("=" * 64)
+                print(f"\n📍 Port: {port}")
+                print("\n🔗 Share these URLs with your team members on the VPN:\n")
+                
+                seen_ips = set()
+                for iface, ip in ips:
+                    if ip not in seen_ips:
+                        seen_ips.add(ip)
+                        tag = " (VPN / Network)" if iface != "lo0" else " (Internal)"
+                        print(f"   👉 http://{ip}:{port}{tag}")
+                
+                print(f"\n   💻 Local access on your Mac:")
+                print(f"      http://localhost:{port}")
+                print("\n" + "-" * 64)
+                print(" 💡 Tips for sharing:")
+                print(" 1. Teammates must be connected to the same office VPN.")
+                print(" 2. Keep this terminal window open while teammates are using it.")
+                print(" 3. Press [Ctrl + C] anytime to stop the server.")
+                print("=" * 64 + "\n")
+                
+                httpd.serve_forever()
+                break
+
+        except OSError as e:
+            if e.errno == 48 or "Address already in use" in str(e):
+                print(f"Port {port} is occupied, trying port {port + 1}...")
+                port += 1
+            else:
+                print(f"\n❌ Server error: {e}\n")
+                break
+        except KeyboardInterrupt:
+            print("\n🛑 TimeBridge server stopped gracefully. Goodbye!\n")
+            break
 
 if __name__ == '__main__':
     main()

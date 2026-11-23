@@ -105,15 +105,18 @@
     <nav class="nav-tabs" role="tablist">
       <button class="tab-btn active" data-tab="converterTab" role="tab" aria-selected="true">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
-        <span>IST ⇄ CST Converter</span>
+        <span class="tab-text-full">IST ⇄ CST Converter</span>
+        <span class="tab-text-short">Converter</span>
       </button>
       <button class="tab-btn" data-tab="calculatorTab" role="tab" aria-selected="false">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="18"></line><path d="M16 10h.01"></path><path d="M12 10h.01"></path><path d="M8 10h.01"></path><path d="M12 14h.01"></path><path d="M8 14h.01"></path><path d="M12 18h.01"></path><path d="M8 18h.01"></path></svg>
-        <span>Time Between Dates Calculator</span>
+        <span class="tab-text-full">Time Between Dates Calculator</span>
+        <span class="tab-text-short">Difference</span>
       </button>
       <button class="tab-btn" data-tab="matrixTab" role="tab" aria-selected="false">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-        <span>24-Hour Overlap Matrix</span>
+        <span class="tab-text-full">24-Hour Overlap Matrix</span>
+        <span class="tab-text-short">Overlap Matrix</span>
       </button>
     </nav>
 
@@ -247,10 +250,16 @@
 
               <!-- Action buttons -->
               <div class="card-actions-row">
-                <button id="copyConvertedBtn" class="action-btn">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                  <span>Copy Result</span>
-                </button>
+                <div class="action-btn-group">
+                  <button id="copyConvertedBtn" class="action-btn" type="button">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    <span>Copy Result</span>
+                  </button>
+                  <button id="shareConvertedBtn" class="action-btn share-btn" type="button" title="Share via WhatsApp, Slack, Teams, etc.">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                    <span>Share</span>
+                  </button>
+                </div>
                 <div class="copy-alert" id="copyAlert">Copied to clipboard!</div>
               </div>
             </div>
@@ -467,12 +476,18 @@
                 Exact duration calculated across timezones
               </div>
 
-              <!-- Copy Duration Button -->
+              <!-- Copy & Share Duration Button -->
               <div class="duration-action-row">
-                <button type="button" id="copyDurationBtn" class="action-btn duration-copy-btn">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                  <span>Copy Duration</span>
-                </button>
+                <div class="action-btn-group">
+                  <button type="button" id="copyDurationBtn" class="action-btn duration-copy-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    <span>Copy Duration</span>
+                  </button>
+                  <button type="button" id="shareDurationBtn" class="action-btn share-btn" title="Share Duration via WhatsApp, Slack, etc.">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                    <span>Share</span>
+                  </button>
+                </div>
                 <span class="copy-alert" id="durationCopyAlert">Duration copied to clipboard!</span>
               </div>
             </div>
@@ -601,6 +616,9 @@
             </div>
           </div>
           <div class="card-body">
+            <div class="mobile-swipe-hint">
+              <span>👈 Swipe horizontally to view CST, EST & UTC 👉</span>
+            </div>
             <div class="table-responsive">
               <table class="matrix-table" id="matrixTable">
                 <thead>

@@ -109,6 +109,7 @@
   const sourceWorkStatus = document.getElementById('sourceWorkStatus');
   const targetWorkStatus = document.getElementById('targetWorkStatus');
   const copyConvertedBtn = document.getElementById('copyConvertedBtn');
+  const shareConvertedBtn = document.getElementById('shareConvertedBtn');
   const copyAlert = document.getElementById('copyAlert');
   const hourScrubber = document.getElementById('hourScrubber');
   const scrubberCurrentDisplay = document.getElementById('scrubberCurrentDisplay');
@@ -129,6 +130,7 @@
   const calcEndTz = document.getElementById('calcEndTz');
   const btnEndNow = document.getElementById('btnEndNow');
   const copyDurationBtn = document.getElementById('copyDurationBtn');
+  const shareDurationBtn = document.getElementById('shareDurationBtn');
   const durationCopyAlert = document.getElementById('durationCopyAlert');
   const calcSwapBtn = document.getElementById('calcSwapBtn');
   const liveTickToggle = document.getElementById('liveTickToggle');
@@ -908,6 +910,70 @@
   }
 
   // =========================================================================
+  // Android & Mobile Device Bridge Helpers
+  // =========================================================================
+
+  function triggerHaptic(type = 'light') {
+    try {
+      if (window.AndroidBridge && typeof window.AndroidBridge.hapticFeedback === 'function') {
+        window.AndroidBridge.hapticFeedback(type);
+        return;
+      }
+      if ('vibrate' in navigator) {
+        if (type === 'heavy') navigator.vibrate(30);
+        else if (type === 'medium') navigator.vibrate(20);
+        else navigator.vibrate(10);
+      }
+    } catch (e) {
+      // Haptics not available or permitted
+    }
+  }
+
+  async function shareFormattedTime(title, text) {
+    triggerHaptic('medium');
+    try {
+      if (window.AndroidBridge && typeof window.AndroidBridge.shareText === 'function') {
+        window.AndroidBridge.shareText(title, text);
+        return;
+      }
+      if (navigator.share) {
+        await navigator.share({ title, text });
+        return;
+      }
+    } catch (err) {
+      if (err.name === 'AbortError') return; // User cancelled system share sheet
+    }
+
+    // Fallback: Copy to clipboard and alert / toast
+    try {
+      await navigator.clipboard.writeText(text);
+      if (window.AndroidBridge && typeof window.AndroidBridge.showToast === 'function') {
+        window.AndroidBridge.showToast('Copied to clipboard!');
+      } else {
+        alert(`Copied to clipboard:\n\n${text}`);
+      }
+    } catch (clipErr) {
+      alert(`TimeBridge:\n${text}`);
+    }
+  }
+
+  // URL Hash Navigation for Android App Shortcuts & Deep Links
+  function handleUrlHash() {
+    const hash = window.location.hash;
+    if (!hash) return;
+    const tabMap = {
+      '#converter': 'converterTab',
+      '#calculator': 'calculatorTab',
+      '#matrix': 'matrixTab'
+    };
+    const targetTabId = tabMap[hash];
+    if (targetTabId) {
+      const tabBtn = document.querySelector(`.tab-btn[data-tab="${targetTabId}"]`);
+      if (tabBtn) tabBtn.click();
+    }
+  }
+
+  // =========================================================================
   // Event Listeners & Wiring
   // =========================================================================
 
@@ -915,6 +981,7 @@
     // Tab switching
     tabButtons.forEach(btn => {
       btn.addEventListener('click', () => {
+        triggerHaptic('light');
         tabButtons.forEach(b => {
           b.classList.remove('active');
           b.setAttribute('aria-selected', 'false');
@@ -930,6 +997,7 @@
 
     // Theme toggle
     themeToggleBtn.addEventListener('click', () => {
+      triggerHaptic('light');
       const isLight = document.body.classList.toggle('theme-light');
       localStorage.setItem('timebridge-theme', isLight ? 'light' : 'dark');
     });
@@ -937,6 +1005,7 @@
     // CST Variant Radios
     cstVariantRadios.forEach(radio => {
       radio.addEventListener('change', (e) => {
+        triggerHaptic('light');
         currentCstVariant = e.target.value;
         syncConverterLabels();
         runConversion();
@@ -952,40 +1021,59 @@
 
     // Swap Direction
     swapDirectionBtn.addEventListener('click', () => {
+      triggerHaptic('medium');
       conversionDirection = conversionDirection === 'IST_TO_CST' ? 'CST_TO_IST' : 'IST_TO_CST';
       syncConverterLabels();
       runConversion();
     });
 
     // Quick presets
-    document.getElementById('btnSetNow').addEventListener('click', setConverterTimeToNow);
-    document.getElementById('btnSub1m').addEventListener('click', () => adjustConverterMinutes(-1));
-    document.getElementById('btnAdd1m').addEventListener('click', () => adjustConverterMinutes(1));
-    document.getElementById('btnSub1h').addEventListener('click', () => adjustConverterHours(-1));
-    document.getElementById('btnAdd1h').addEventListener('click', () => adjustConverterHours(1));
+    document.getElementById('btnSetNow').addEventListener('click', () => {
+      triggerHaptic('light');
+      setConverterTimeToNow();
+    });
+    document.getElementById('btnSub1m').addEventListener('click', () => {
+      triggerHaptic('light');
+      adjustConverterMinutes(-1);
+    });
+    document.getElementById('btnAdd1m').addEventListener('click', () => {
+      triggerHaptic('light');
+      adjustConverterMinutes(1);
+    });
+    document.getElementById('btnSub1h').addEventListener('click', () => {
+      triggerHaptic('light');
+      adjustConverterHours(-1);
+    });
+    document.getElementById('btnAdd1h').addEventListener('click', () => {
+      triggerHaptic('light');
+      adjustConverterHours(1);
+    });
     document.getElementById('btnMorning9').addEventListener('click', () => {
+      triggerHaptic('light');
       convTimeInput.value = '09:00';
       runConversion();
     });
     document.getElementById('btnAfternoon2').addEventListener('click', () => {
+      triggerHaptic('light');
       convTimeInput.value = '14:00';
       runConversion();
     });
     document.getElementById('btnEvening6').addEventListener('click', () => {
+      triggerHaptic('light');
       convTimeInput.value = '18:00';
       runConversion();
     });
 
-    // Scrubber 1-Minute Stepper Buttons
+    // Scrubber 1-Minute & 5-Minute Stepper Buttons
     const scrubSub1m = document.getElementById('btnScrubSub1m');
     const scrubAdd1m = document.getElementById('btnScrubAdd1m');
     const scrubSub5m = document.getElementById('btnScrubSub5m');
     const scrubAdd5m = document.getElementById('btnScrubAdd5m');
 
-    if (scrubSub1m) scrubSub1m.addEventListener('click', () => adjustConverterMinutes(-1));
-    if (scrubAdd1m) scrubAdd1m.addEventListener('click', () => adjustConverterMinutes(1));
-    if (scrubSub5m) scrubSub5m.addEventListener('click', () => adjustConverterMinutes(-5));
-    if (scrubAdd5m) scrubAdd5m.addEventListener('click', () => adjustConverterMinutes(5));
+    if (scrubSub1m) scrubSub1m.addEventListener('click', () => { triggerHaptic('light'); adjustConverterMinutes(-1); });
+    if (scrubAdd1m) scrubAdd1m.addEventListener('click', () => { triggerHaptic('light'); adjustConverterMinutes(1); });
+    if (scrubSub5m) scrubSub5m.addEventListener('click', () => { triggerHaptic('light'); adjustConverterMinutes(-5); });
+    if (scrubAdd5m) scrubAdd5m.addEventListener('click', () => { triggerHaptic('light'); adjustConverterMinutes(5); });
 
     // Scrubber - 1-minute increment & decrement on input
     hourScrubber.addEventListener('input', (e) => {
@@ -998,8 +1086,9 @@
       runConversion();
     });
 
-    // Copy to clipboard
+    // Copy Converted Time
     copyConvertedBtn.addEventListener('click', async () => {
+      triggerHaptic('medium');
       const textToCopy = `${targetTimeResult.textContent} • ${targetDateResult.textContent} (${targetOffsetBadge.textContent})`;
       try {
         await navigator.clipboard.writeText(textToCopy);
@@ -1010,6 +1099,16 @@
       }
     });
 
+    // Native Share Converted Time
+    if (shareConvertedBtn) {
+      shareConvertedBtn.addEventListener('click', () => {
+        const srcText = `${sourceTitle.textContent}: ${convDateInput.value} ${convTimeInput.value} (${sourceOffsetBadge.textContent})`;
+        const tgtText = `${targetTitle.textContent}: ${targetDateResult.textContent} ${targetTimeResult.textContent} (${targetOffsetBadge.textContent})`;
+        const summary = `🕒 TimeBridge Conversion\n• ${srcText}\n• ${tgtText}\nDifference: ${offsetSummaryText.textContent}`;
+        shareFormattedTime('TimeBridge Time Conversion', summary);
+      });
+    }
+
     // Calculator Inputs
     [calcStartDate, calcStartTime, calcStartTz, calcEndDate, calcEndTime, calcEndTz].forEach(el => {
       el.addEventListener('input', calculateInterval);
@@ -1018,6 +1117,7 @@
 
     // Calculator Swap
     calcSwapBtn.addEventListener('click', () => {
+      triggerHaptic('medium');
       const d1 = calcStartDate.value;
       const t1 = calcStartTime.value;
       const tz1 = calcStartTz.value;
@@ -1035,6 +1135,7 @@
 
     // Calculator Presets
     document.getElementById('btnStartNow').addEventListener('click', () => {
+      triggerHaptic('light');
       const now = new Date();
       const parts = getTzParts(now, calcStartTz.value);
       calcStartDate.value = parts.isoDate;
@@ -1044,6 +1145,7 @@
     });
 
     document.getElementById('btnStartToday9').addEventListener('click', () => {
+      triggerHaptic('light');
       const now = new Date();
       const parts = getTzParts(now, calcStartTz.value);
       calcStartDate.value = parts.isoDate;
@@ -1054,6 +1156,7 @@
     // End Date "Set to Now" Button
     if (btnEndNow) {
       btnEndNow.addEventListener('click', () => {
+        triggerHaptic('light');
         const now = new Date();
         const parts = getTzParts(now, calcEndTz.value);
         calcEndDate.value = parts.isoDate;
@@ -1066,6 +1169,7 @@
     // Copy Duration Button
     if (copyDurationBtn) {
       copyDurationBtn.addEventListener('click', async () => {
+        triggerHaptic('medium');
         const d = valDays.textContent;
         const h = valHours.textContent;
         const m = valMinutes.textContent;
@@ -1083,7 +1187,22 @@
       });
     }
 
+    // Native Share Duration Button
+    if (shareDurationBtn) {
+      shareDurationBtn.addEventListener('click', () => {
+        const d = valDays.textContent;
+        const h = valHours.textContent;
+        const m = valMinutes.textContent;
+        const s = valSeconds.textContent;
+        const startInfo = `${calcStartDate.value} ${calcStartTime.value} (${calcStartTz.value})`;
+        const endInfo = `${calcEndDate.value} ${calcEndTime.value} (${calcEndTz.value})`;
+        const summary = `⏱️ TimeBridge Interval\n• From: ${startInfo}\n• To: ${endInfo}\n• Duration: ${d}d ${h}h ${m}m ${s}s\n• Total: ${statTotalHours.textContent} hrs | ${statBusinessDays.textContent} business days`;
+        shareFormattedTime('TimeBridge Time Interval', summary);
+      });
+    }
+
     document.getElementById('btnEndPlus1d').addEventListener('click', () => {
+      triggerHaptic('light');
       const startUtc = parseWallClockToUtc(calcStartDate.value, calcStartTime.value, calcStartTz.value);
       if (!startUtc) return;
       const endUtc = new Date(startUtc.getTime() + 86400000);
@@ -1095,6 +1214,7 @@
     });
 
     document.getElementById('btnEndPlus1w').addEventListener('click', () => {
+      triggerHaptic('light');
       const startUtc = parseWallClockToUtc(calcStartDate.value, calcStartTime.value, calcStartTz.value);
       if (!startUtc) return;
       const endUtc = new Date(startUtc.getTime() + 7 * 86400000);
@@ -1106,6 +1226,7 @@
     });
 
     document.getElementById('btnEndPlus1m').addEventListener('click', () => {
+      triggerHaptic('light');
       const startUtc = parseWallClockToUtc(calcStartDate.value, calcStartTime.value, calcStartTz.value);
       if (!startUtc) return;
       const endUtc = new Date(startUtc.getTime() + 30 * 86400000);
@@ -1118,6 +1239,7 @@
 
     // Live Tick Toggle
     liveTickToggle.addEventListener('change', (e) => {
+      triggerHaptic('light');
       if (e.target.checked) {
         liveTickInterval = setInterval(() => {
           // If live tick is on, advance end date/time to right now
@@ -1159,6 +1281,10 @@
 
     initCalculatorDefaults();
     setupEventListeners();
+
+    // Support Android launcher shortcuts & hash links
+    handleUrlHash();
+    window.addEventListener('hashchange', handleUrlHash);
 
     // Start live clock updates
     updateLiveClocks();
