@@ -48,6 +48,18 @@
       name: 'US Eastern Time',
       country: 'USA'
     },
+    US_PST: {
+      iana: 'America/Los_Angeles',
+      code: 'PST/PDT',
+      name: 'US Pacific Time (Auto DST)',
+      country: 'USA'
+    },
+    PST: {
+      iana: 'America/Los_Angeles',
+      code: 'PST/PDT',
+      name: 'US Pacific Time',
+      country: 'USA'
+    },
     US_FIXED_CST: {
       iana: 'Etc/GMT+6', // Fixed UTC-6 (POSIX notation: GMT+6 is UTC-6)
       code: 'CST',
@@ -65,7 +77,9 @@
 
   // State
   let currentCstVariant = 'US_AUTO'; // 'US_AUTO' | 'US_FIXED_CST' | 'CHINA_CST'
-  let conversionDirection = 'IST_TO_CST'; // 'IST_TO_CST' | 'CST_TO_IST'
+  let conversionDirection = 'IST_TO_CST'; // 'IST_TO_CST' | 'CST_TO_IST' (Instance 1)
+  let conversionDirection2 = 'IST_TO_CST'; // 'IST_TO_CST' | 'CST_TO_IST' (Instance 2)
+  let activeScrubberTarget = 1; // 1 | 2
   let liveTickInterval = null;
 
   // DOM Elements - Header & Clocks
@@ -84,13 +98,17 @@
   const estLiveDate = document.getElementById('estLiveDate');
   const estLabelCode = document.getElementById('estLabelCode');
   const estOffsetBadge = document.getElementById('estOffsetBadge');
+  const pstLiveTime = document.getElementById('pstLiveTime');
+  const pstLiveDate = document.getElementById('pstLiveDate');
+  const pstLabelCode = document.getElementById('pstLabelCode');
+  const pstOffsetBadge = document.getElementById('pstOffsetBadge');
   const themeToggleBtn = document.getElementById('themeToggleBtn');
 
   // DOM Elements - Tabs
   const tabButtons = document.querySelectorAll('.tab-btn');
   const tabPanels = document.querySelectorAll('.tab-panel');
 
-  // DOM Elements - Converter
+  // DOM Elements - Converter Instance 1
   const convDateInput = document.getElementById('convDate');
   const convTimeInput = document.getElementById('convTime');
   const swapDirectionBtn = document.getElementById('swapDirectionBtn');
@@ -111,6 +129,38 @@
   const copyConvertedBtn = document.getElementById('copyConvertedBtn');
   const shareConvertedBtn = document.getElementById('shareConvertedBtn');
   const copyAlert = document.getElementById('copyAlert');
+
+  // DOM Elements - Converter Instance 2
+  const convDateInput2 = document.getElementById('convDate2');
+  const convTimeInput2 = document.getElementById('convTime2');
+  const swapDirectionBtn2 = document.getElementById('swapDirectionBtn2');
+  const sourceTag2 = document.getElementById('sourceTag2');
+  const sourceTitle2 = document.getElementById('sourceTitle2');
+  const sourceOffsetBadge2 = document.getElementById('sourceOffsetBadge2');
+  const targetTag2 = document.getElementById('targetTag2');
+  const targetTitle2 = document.getElementById('targetTitle2');
+  const targetOffsetBadge2 = document.getElementById('targetOffsetBadge2');
+  const targetTimeResult2 = document.getElementById('targetTimeResult2');
+  const targetDateResult2 = document.getElementById('targetDateResult2');
+  const dayRelativeBadge2 = document.getElementById('dayRelativeBadge2');
+  const dstIndicatorPill2 = document.getElementById('dstIndicatorPill2');
+  const offsetSummaryText2 = document.getElementById('offsetSummaryText2');
+  const secondaryTzPill2 = document.getElementById('secondaryTzPill2');
+  const sourceWorkStatus2 = document.getElementById('sourceWorkStatus2');
+  const targetWorkStatus2 = document.getElementById('targetWorkStatus2');
+  const copyConvertedBtn2 = document.getElementById('copyConvertedBtn2');
+  const shareConvertedBtn2 = document.getElementById('shareConvertedBtn2');
+  const copyAlert2 = document.getElementById('copyAlert2');
+  const btnSyncInstance2To1 = document.getElementById('btnSyncInstance2To1');
+  const btnSyncDate2 = document.getElementById('btnSyncDate2');
+  const btnToggleInstance2 = document.getElementById('btnToggleInstance2');
+  const instanceBlock2 = document.getElementById('instanceBlock2');
+  const toggleInstance2Text = document.getElementById('toggleInstance2Text');
+
+  // DOM Elements - Scrubber Target Selector
+  const scrubTarget1 = document.getElementById('scrubTarget1');
+  const scrubTarget2 = document.getElementById('scrubTarget2');
+
   const hourScrubber = document.getElementById('hourScrubber');
   const scrubberCurrentDisplay = document.getElementById('scrubberCurrentDisplay');
   const utcTimelineCells = document.getElementById('utcTimelineCells');
@@ -171,6 +221,7 @@
     if (key === 'IST') return TZ_CONFIGS.IST.iana;
     if (key === 'CST') return TZ_CONFIGS[currentCstVariant].iana;
     if (key === 'EST') return TZ_CONFIGS.EST.iana;
+    if (key === 'PST') return TZ_CONFIGS.PST.iana;
     if (key === 'UTC') return TZ_CONFIGS.UTC.iana;
     if (key === 'GMT') return TZ_CONFIGS.GMT.iana;
     if (key === 'LOCAL') return Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -397,6 +448,19 @@
       }
     }
 
+    // PST Clock
+    if (pstLiveTime && pstLiveDate) {
+      const pstParts = getTzParts(now, 'PST');
+      pstLiveTime.textContent = `${pstParts.hour12}:${pstParts.minute}:${pstParts.second} ${pstParts.dayPeriod}`;
+      pstLiveDate.textContent = pstParts.dateFormatted;
+      if (pstOffsetBadge) {
+        pstOffsetBadge.textContent = pstParts.timeZoneName === 'PDT' ? 'UTC-7 (PDT)' : 'UTC-8 (PST)';
+      }
+      if (pstLabelCode) {
+        pstLabelCode.textContent = `${pstParts.timeZoneName || 'PST'} (US Pacific)`;
+      }
+    }
+
     // Update CST header label & offset
     const cstCfg = TZ_CONFIGS[currentCstVariant];
     cstLabelCode.textContent = `${cstParts.timeZoneName || cstCfg.code} (${cstCfg.country})`;
@@ -411,14 +475,15 @@
   }
 
   // =========================================================================
-  // Tab 1: Converter Logic
+  // Tab 1: Converter Logic (Multi-Instance Engine)
   // =========================================================================
 
   function syncConverterLabels() {
-    const isIstSource = conversionDirection === 'IST_TO_CST';
     const cstCfg = TZ_CONFIGS[currentCstVariant];
 
-    if (isIstSource) {
+    // Instance 1 Labels
+    const isIstSource1 = conversionDirection === 'IST_TO_CST';
+    if (isIstSource1) {
       sourceTag.textContent = 'FROM';
       sourceTitle.textContent = 'Indian Standard Time (IST)';
       sourceOffsetBadge.textContent = 'UTC +05:30';
@@ -436,16 +501,44 @@
       targetOffsetBadge.textContent = 'UTC +05:30';
     }
 
+    // Instance 2 Labels
+    if (sourceTag2 && targetTag2) {
+      const isIstSource2 = conversionDirection2 === 'IST_TO_CST';
+      if (isIstSource2) {
+        sourceTag2.textContent = 'FROM';
+        sourceTitle2.textContent = 'Indian Standard Time (IST)';
+        sourceOffsetBadge2.textContent = 'UTC +05:30';
+
+        targetTag2.textContent = 'TO';
+        targetTitle2.textContent = `${cstCfg.name}`;
+        targetOffsetBadge2.textContent = cstCfg.code === 'UTC' ? 'UTC+0' : cstCfg.code;
+      } else {
+        sourceTag2.textContent = 'FROM';
+        sourceTitle2.textContent = `${cstCfg.name}`;
+        sourceOffsetBadge2.textContent = cstCfg.code === 'UTC' ? 'UTC+0' : cstCfg.code;
+
+        targetTag2.textContent = 'TO';
+        targetTitle2.textContent = 'Indian Standard Time (IST)';
+        targetOffsetBadge2.textContent = 'UTC +05:30';
+      }
+    }
+
     cstTrackCode.textContent = cstCfg.code;
     matrixVariantNotice.textContent = cstCfg.name;
   }
 
-  function runConversion() {
-    const dateVal = convDateInput.value;
-    const timeVal = convTimeInput.value;
+  function runConversionEngine(instanceNum) {
+    const isInstance1 = instanceNum === 1;
+    const dateInput = isInstance1 ? convDateInput : convDateInput2;
+    const timeInput = isInstance1 ? convTimeInput : convTimeInput2;
+    if (!dateInput || !timeInput) return;
+
+    const dateVal = dateInput.value;
+    const timeVal = timeInput.value;
     if (!dateVal || !timeVal) return;
 
-    const isIstSource = conversionDirection === 'IST_TO_CST';
+    const direction = isInstance1 ? conversionDirection : conversionDirection2;
+    const isIstSource = direction === 'IST_TO_CST';
     const sourceTzKey = isIstSource ? 'IST' : 'CST';
     const targetTzKey = isIstSource ? 'CST' : 'IST';
 
@@ -457,94 +550,116 @@
     const targetParts = getTzParts(utcDate, targetTzKey);
     const sourceParts = getTzParts(utcDate, sourceTzKey);
 
-    targetTimeResult.textContent = `${targetParts.hour12}:${targetParts.minute} ${targetParts.dayPeriod}`;
-    targetDateResult.textContent = targetParts.dateFormatted;
+    const timeResult = isInstance1 ? targetTimeResult : targetTimeResult2;
+    const dateResult = isInstance1 ? targetDateResult : targetDateResult2;
+    const relBadge = isInstance1 ? dayRelativeBadge : dayRelativeBadge2;
+    const dstPill = isInstance1 ? dstIndicatorPill : dstIndicatorPill2;
+    const secPill = isInstance1 ? secondaryTzPill : secondaryTzPill2;
+    const summaryText = isInstance1 ? offsetSummaryText : offsetSummaryText2;
+    const srcWorkEl = isInstance1 ? sourceWorkStatus : sourceWorkStatus2;
+    const tgtWorkEl = isInstance1 ? targetWorkStatus : targetWorkStatus2;
+
+    if (timeResult) timeResult.textContent = `${targetParts.hour12}:${targetParts.minute} ${targetParts.dayPeriod}`;
+    if (dateResult) dateResult.textContent = targetParts.dateFormatted;
 
     // Day relative badge
     const srcDate = sourceParts.isoDate;
     const tgtDate = targetParts.isoDate;
 
-    if (srcDate === tgtDate) {
-      dayRelativeBadge.textContent = 'Same Day';
-      dayRelativeBadge.className = 'day-rel-badge';
-    } else {
-      const srcD = new Date(srcDate);
-      const tgtD = new Date(tgtDate);
-      const dayDiff = Math.round((tgtD - srcD) / (86400000));
-      if (dayDiff > 0) {
-        dayRelativeBadge.textContent = `+${dayDiff} Day (Next Day)`;
-        dayRelativeBadge.className = 'day-rel-badge next';
+    if (relBadge) {
+      if (srcDate === tgtDate) {
+        relBadge.textContent = 'Same Day';
+        relBadge.className = 'day-rel-badge';
       } else {
-        dayRelativeBadge.textContent = `${dayDiff} Day (Previous Day)`;
-        dayRelativeBadge.className = 'day-rel-badge prev';
+        const srcD = new Date(srcDate);
+        const tgtD = new Date(tgtDate);
+        const dayDiff = Math.round((tgtD - srcD) / (86400000));
+        if (dayDiff > 0) {
+          relBadge.textContent = `+${dayDiff} Day (Next Day)`;
+          relBadge.className = 'day-rel-badge next';
+        } else {
+          relBadge.textContent = `${dayDiff} Day (Previous Day)`;
+          relBadge.className = 'day-rel-badge prev';
+        }
       }
     }
 
     // DST / Standard info pill
-    if (currentCstVariant === 'UTC') {
-      dstIndicatorPill.textContent = 'UTC Standard Time (UTC+0, No DST)';
-    } else if (currentCstVariant === 'US_AUTO') {
-      const tzName = isIstSource ? targetParts.timeZoneName : sourceParts.timeZoneName;
-      if (tzName === 'CDT') {
-        dstIndicatorPill.textContent = 'Daylight Saving Time (CDT, UTC-5)';
+    if (dstPill) {
+      if (currentCstVariant === 'UTC') {
+        dstPill.textContent = 'UTC Standard Time (UTC+0, No DST)';
+      } else if (currentCstVariant === 'US_AUTO') {
+        const tzName = isIstSource ? targetParts.timeZoneName : sourceParts.timeZoneName;
+        dstPill.textContent = tzName === 'CDT' ? 'Daylight Saving Time (CDT, UTC-5)' : 'Standard Time (CST, UTC-6)';
+      } else if (currentCstVariant === 'US_EST') {
+        const tzName = isIstSource ? targetParts.timeZoneName : sourceParts.timeZoneName;
+        dstPill.textContent = tzName === 'EDT' ? 'Daylight Saving Time (EDT, UTC-4)' : 'Standard Time (EST, UTC-5)';
+      } else if (currentCstVariant === 'US_FIXED_CST') {
+        dstPill.textContent = 'Fixed Standard Time (UTC-6)';
       } else {
-        dstIndicatorPill.textContent = 'Standard Time (CST, UTC-6)';
+        dstPill.textContent = 'China Standard Time (UTC+8, No DST)';
       }
-    } else if (currentCstVariant === 'US_EST') {
-      const tzName = isIstSource ? targetParts.timeZoneName : sourceParts.timeZoneName;
-      if (tzName === 'EDT') {
-        dstIndicatorPill.textContent = 'Daylight Saving Time (EDT, UTC-4)';
-      } else {
-        dstIndicatorPill.textContent = 'Standard Time (EST, UTC-5)';
-      }
-    } else if (currentCstVariant === 'US_FIXED_CST') {
-      dstIndicatorPill.textContent = 'Fixed Standard Time (UTC-6)';
-    } else {
-      dstIndicatorPill.textContent = 'China Standard Time (UTC+8, No DST)';
     }
 
     // Companion US timezone pill
-    if (secondaryTzPill) {
+    if (secPill) {
       const companionEst = getTzParts(utcDate, 'EST');
       const companionCst = getTzParts(utcDate, 'CST');
+      const companionPst = getTzParts(utcDate, 'PST');
       if (currentCstVariant === 'UTC') {
-        secondaryTzPill.textContent = `US: Central ${companionCst.timeFormatted} • Eastern ${companionEst.timeFormatted}`;
+        secPill.textContent = `US: Central ${companionCst.timeFormatted} • Eastern ${companionEst.timeFormatted} • Pacific ${companionPst.timeFormatted}`;
       } else if (currentCstVariant === 'US_EST') {
-        secondaryTzPill.textContent = `US Central (${companionCst.timeZoneName || 'CST'}): ${companionCst.timeFormatted}`;
+        secPill.textContent = `US: Central ${companionCst.timeFormatted} • Pacific ${companionPst.timeFormatted}`;
       } else {
-        secondaryTzPill.textContent = `US Eastern (${companionEst.timeZoneName || 'EST'}): ${companionEst.timeFormatted}`;
+        secPill.textContent = `US: Eastern ${companionEst.timeFormatted} • Pacific ${companionPst.timeFormatted}`;
       }
     }
 
     // Offset summary sentence
-    const diffInfo = getOffsetDifference(utcDate);
-    const diffHours = Math.floor(Math.abs(diffInfo.diffMinutes) / 60);
-    const diffMins = Math.abs(diffInfo.diffMinutes) % 60;
-    const minText = diffMins > 0 ? ` and ${diffMins} minutes` : '';
+    if (summaryText) {
+      const diffInfo = getOffsetDifference(utcDate);
+      const diffHours = Math.floor(Math.abs(diffInfo.diffMinutes) / 60);
+      const diffMins = Math.abs(diffInfo.diffMinutes) % 60;
+      const minText = diffMins > 0 ? ` and ${diffMins} minutes` : '';
 
-    if (diffInfo.diffMinutes > 0) {
-      offsetSummaryText.textContent = `IST is ${diffHours} hours${minText} ahead of ${TZ_CONFIGS[currentCstVariant].code}`;
-    } else if (diffInfo.diffMinutes < 0) {
-      offsetSummaryText.textContent = `IST is ${diffHours} hours${minText} behind ${TZ_CONFIGS[currentCstVariant].code}`;
-    } else {
-      offsetSummaryText.textContent = `Both timezones are currently in sync!`;
+      if (diffInfo.diffMinutes > 0) {
+        summaryText.textContent = `IST is ${diffHours} hours${minText} ahead of ${TZ_CONFIGS[currentCstVariant].code}`;
+      } else if (diffInfo.diffMinutes < 0) {
+        summaryText.textContent = `IST is ${diffHours} hours${minText} behind ${TZ_CONFIGS[currentCstVariant].code}`;
+      } else {
+        summaryText.textContent = `Both timezones are currently in sync!`;
+      }
     }
 
     // Business Hours status
-    const srcWork = getWorkStatus(sourceParts.hour24);
-    sourceWorkStatus.innerHTML = `
-      <span class="status-indicator ${srcWork.cls}"></span>
-      <span class="status-text"><strong>${sourceParts.timeFormatted} (${sourceParts.timeZoneName}):</strong> ${srcWork.text}</span>
-    `;
+    if (srcWorkEl) {
+      const srcWork = getWorkStatus(sourceParts.hour24);
+      srcWorkEl.innerHTML = `
+        <span class="status-indicator ${srcWork.cls}"></span>
+        <span class="status-text"><strong>${sourceParts.timeFormatted} (${sourceParts.timeZoneName}):</strong> ${srcWork.text}</span>
+      `;
+    }
 
-    const tgtWork = getWorkStatus(targetParts.hour24);
-    targetWorkStatus.innerHTML = `
-      <span class="status-indicator ${tgtWork.cls}"></span>
-      <span class="status-text"><strong>${targetParts.timeFormatted} (${targetParts.timeZoneName}):</strong> ${tgtWork.text}</span>
-    `;
+    if (tgtWorkEl) {
+      const tgtWork = getWorkStatus(targetParts.hour24);
+      tgtWorkEl.innerHTML = `
+        <span class="status-indicator ${tgtWork.cls}"></span>
+        <span class="status-text"><strong>${targetParts.timeFormatted} (${targetParts.timeZoneName}):</strong> ${tgtWork.text}</span>
+      `;
+    }
 
-    // Highlight scrubber cell
-    updateScrubberFromTime(sourceParts.hour24, parseInt(sourceParts.minute, 10));
+    // If active scrubber target matches this instance, update scrubber display
+    if (activeScrubberTarget === instanceNum) {
+      updateScrubberFromTime(sourceParts.hour24, parseInt(sourceParts.minute, 10));
+    }
+  }
+
+  function runConversion() {
+    runConversionEngine(1);
+  }
+
+  function runConversion2() {
+    runConversionEngine(2);
   }
 
   function updateScrubberFromTime(h, m) {
@@ -554,9 +669,12 @@
       const h12 = h % 12 === 0 ? 12 : h % 12;
       const ampm = h < 12 ? 'AM' : 'PM';
       const mm = m < 10 ? '0' + m : m;
-      const isIst = conversionDirection === 'IST_TO_CST';
+      const isInstance1 = activeScrubberTarget === 1;
+      const dir = isInstance1 ? conversionDirection : conversionDirection2;
+      const isIst = dir === 'IST_TO_CST';
       const tzCode = isIst ? 'IST' : TZ_CONFIGS[currentCstVariant].code;
-      scrubberCurrentDisplay.textContent = `${(h12 < 10 ? '0' : '') + h12}:${mm} ${ampm} (${tzCode})`;
+      const instLabel = isInstance1 ? 'Instance 1' : 'Instance 2';
+      scrubberCurrentDisplay.textContent = `${(h12 < 10 ? '0' : '') + h12}:${mm} ${ampm} (${tzCode} • ${instLabel})`;
     }
     renderTimelineCells(h);
   }
@@ -626,48 +744,71 @@
   }
 
   // Preset buttons
-  function setConverterTimeToNow() {
+  function setConverterTimeToNow(inst = 1) {
+    const isInst1 = inst === 1;
+    const dateInput = isInst1 ? convDateInput : convDateInput2;
+    const timeInput = isInst1 ? convTimeInput : convTimeInput2;
+    if (!dateInput || !timeInput) return;
+
     const now = new Date();
-    const sourceTzKey = conversionDirection === 'IST_TO_CST' ? 'IST' : 'CST';
+    const dir = isInst1 ? conversionDirection : conversionDirection2;
+    const sourceTzKey = dir === 'IST_TO_CST' ? 'IST' : 'CST';
     const parts = getTzParts(now, sourceTzKey);
-    convDateInput.value = parts.isoDate;
+    dateInput.value = parts.isoDate;
     const h = parts.hour24 < 10 ? '0' + parts.hour24 : parts.hour24;
-    convTimeInput.value = `${h}:${parts.minute}`;
-    runConversion();
+    timeInput.value = `${h}:${parts.minute}`;
+    if (isInst1) runConversion();
+    else runConversion2();
   }
 
-  function adjustConverterHours(offsetHours) {
-    const dateVal = convDateInput.value;
-    const timeVal = convTimeInput.value;
+  function adjustConverterHours(offsetHours, inst = null) {
+    const targetInst = inst !== null ? inst : activeScrubberTarget;
+    const isInst1 = targetInst === 1;
+    const dateInput = isInst1 ? convDateInput : convDateInput2;
+    const timeInput = isInst1 ? convTimeInput : convTimeInput2;
+    if (!dateInput || !timeInput) return;
+
+    const dateVal = dateInput.value;
+    const timeVal = timeInput.value;
     if (!dateVal || !timeVal) return;
 
-    const sourceTzKey = conversionDirection === 'IST_TO_CST' ? 'IST' : 'CST';
+    const dir = isInst1 ? conversionDirection : conversionDirection2;
+    const sourceTzKey = dir === 'IST_TO_CST' ? 'IST' : 'CST';
     const currentUtc = parseWallClockToUtc(dateVal, timeVal, sourceTzKey);
     if (!currentUtc) return;
 
     const newUtc = new Date(currentUtc.getTime() + offsetHours * 3600000);
     const newParts = getTzParts(newUtc, sourceTzKey);
-    convDateInput.value = newParts.isoDate;
+    dateInput.value = newParts.isoDate;
     const h = newParts.hour24 < 10 ? '0' + newParts.hour24 : newParts.hour24;
-    convTimeInput.value = `${h}:${newParts.minute}`;
-    runConversion();
+    timeInput.value = `${h}:${newParts.minute}`;
+    if (isInst1) runConversion();
+    else runConversion2();
   }
 
-  function adjustConverterMinutes(offsetMinutes) {
-    const dateVal = convDateInput.value;
-    const timeVal = convTimeInput.value;
+  function adjustConverterMinutes(offsetMinutes, inst = null) {
+    const targetInst = inst !== null ? inst : activeScrubberTarget;
+    const isInst1 = targetInst === 1;
+    const dateInput = isInst1 ? convDateInput : convDateInput2;
+    const timeInput = isInst1 ? convTimeInput : convTimeInput2;
+    if (!dateInput || !timeInput) return;
+
+    const dateVal = dateInput.value;
+    const timeVal = timeInput.value;
     if (!dateVal || !timeVal) return;
 
-    const sourceTzKey = conversionDirection === 'IST_TO_CST' ? 'IST' : 'CST';
+    const dir = isInst1 ? conversionDirection : conversionDirection2;
+    const sourceTzKey = dir === 'IST_TO_CST' ? 'IST' : 'CST';
     const currentUtc = parseWallClockToUtc(dateVal, timeVal, sourceTzKey);
     if (!currentUtc) return;
 
     const newUtc = new Date(currentUtc.getTime() + offsetMinutes * 60000);
     const newParts = getTzParts(newUtc, sourceTzKey);
-    convDateInput.value = newParts.isoDate;
+    dateInput.value = newParts.isoDate;
     const h = newParts.hour24 < 10 ? '0' + newParts.hour24 : newParts.hour24;
-    convTimeInput.value = `${h}:${newParts.minute}`;
-    runConversion();
+    timeInput.value = `${h}:${newParts.minute}`;
+    if (isInst1) runConversion();
+    else runConversion2();
   }
 
   // =========================================================================
@@ -1015,11 +1156,25 @@
       });
     });
 
-    // Converter Inputs
+    // CST Variant Change Listener
+    document.querySelectorAll('input[name="cstZoneVariant"]').forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        triggerHaptic('light');
+        currentCstVariant = e.target.value;
+        syncConverterLabels();
+        runConversion();
+        if (typeof runConversion2 === 'function') runConversion2();
+        renderTimelineCells();
+        renderOverlapMatrix();
+        calculateInterval();
+      });
+    });
+
+    // Converter Inputs - Instance 1
     convDateInput.addEventListener('input', runConversion);
     convTimeInput.addEventListener('input', runConversion);
 
-    // Swap Direction
+    // Swap Direction - Instance 1
     swapDirectionBtn.addEventListener('click', () => {
       triggerHaptic('medium');
       conversionDirection = conversionDirection === 'IST_TO_CST' ? 'CST_TO_IST' : 'IST_TO_CST';
@@ -1027,26 +1182,26 @@
       runConversion();
     });
 
-    // Quick presets
+    // Quick presets - Instance 1
     document.getElementById('btnSetNow').addEventListener('click', () => {
       triggerHaptic('light');
-      setConverterTimeToNow();
+      setConverterTimeToNow(1);
     });
     document.getElementById('btnSub1m').addEventListener('click', () => {
       triggerHaptic('light');
-      adjustConverterMinutes(-1);
+      adjustConverterMinutes(-1, 1);
     });
     document.getElementById('btnAdd1m').addEventListener('click', () => {
       triggerHaptic('light');
-      adjustConverterMinutes(1);
+      adjustConverterMinutes(1, 1);
     });
     document.getElementById('btnSub1h').addEventListener('click', () => {
       triggerHaptic('light');
-      adjustConverterHours(-1);
+      adjustConverterHours(-1, 1);
     });
     document.getElementById('btnAdd1h').addEventListener('click', () => {
       triggerHaptic('light');
-      adjustConverterHours(1);
+      adjustConverterHours(1, 1);
     });
     document.getElementById('btnMorning9').addEventListener('click', () => {
       triggerHaptic('light');
@@ -1063,6 +1218,100 @@
       convTimeInput.value = '18:00';
       runConversion();
     });
+
+    // Converter Inputs & Controls - Instance 2
+    if (convDateInput2) convDateInput2.addEventListener('input', runConversion2);
+    if (convTimeInput2) convTimeInput2.addEventListener('input', runConversion2);
+
+    if (swapDirectionBtn2) {
+      swapDirectionBtn2.addEventListener('click', () => {
+        triggerHaptic('medium');
+        conversionDirection2 = conversionDirection2 === 'IST_TO_CST' ? 'CST_TO_IST' : 'IST_TO_CST';
+        syncConverterLabels();
+        runConversion2();
+      });
+    }
+
+    const btnSetNow2 = document.getElementById('btnSetNow2');
+    const btnSub1m2 = document.getElementById('btnSub1m2');
+    const btnAdd1m2 = document.getElementById('btnAdd1m2');
+    const btnSub1h2 = document.getElementById('btnSub1h2');
+    const btnAdd1h2 = document.getElementById('btnAdd1h2');
+    const btnMorning9_2 = document.getElementById('btnMorning9_2');
+    const btnAfternoon2_2 = document.getElementById('btnAfternoon2_2');
+    const btnEvening6_2 = document.getElementById('btnEvening6_2');
+
+    if (btnSetNow2) btnSetNow2.addEventListener('click', () => { triggerHaptic('light'); setConverterTimeToNow(2); });
+    if (btnSub1m2) btnSub1m2.addEventListener('click', () => { triggerHaptic('light'); adjustConverterMinutes(-1, 2); });
+    if (btnAdd1m2) btnAdd1m2.addEventListener('click', () => { triggerHaptic('light'); adjustConverterMinutes(1, 2); });
+    if (btnSub1h2) btnSub1h2.addEventListener('click', () => { triggerHaptic('light'); adjustConverterHours(-1, 2); });
+    if (btnAdd1h2) btnAdd1h2.addEventListener('click', () => { triggerHaptic('light'); adjustConverterHours(1, 2); });
+    if (btnMorning9_2) btnMorning9_2.addEventListener('click', () => {
+      triggerHaptic('light');
+      convTimeInput2.value = '09:00';
+      runConversion2();
+    });
+    if (btnAfternoon2_2) btnAfternoon2_2.addEventListener('click', () => {
+      triggerHaptic('light');
+      convTimeInput2.value = '14:00';
+      runConversion2();
+    });
+    if (btnEvening6_2) btnEvening6_2.addEventListener('click', () => {
+      triggerHaptic('light');
+      convTimeInput2.value = '18:00';
+      runConversion2();
+    });
+
+    // Instance 2 Sync & Toggle Controls
+    if (btnSyncInstance2To1) {
+      btnSyncInstance2To1.addEventListener('click', () => {
+        triggerHaptic('light');
+        convDateInput2.value = convDateInput.value;
+        convTimeInput2.value = convTimeInput.value;
+        conversionDirection2 = conversionDirection;
+        syncConverterLabels();
+        runConversion2();
+      });
+    }
+
+    if (btnSyncDate2) {
+      btnSyncDate2.addEventListener('click', () => {
+        triggerHaptic('light');
+        convDateInput2.value = convDateInput.value;
+        runConversion2();
+      });
+    }
+
+    if (btnToggleInstance2 && instanceBlock2) {
+      btnToggleInstance2.addEventListener('click', () => {
+        triggerHaptic('light');
+        const isCollapsed = instanceBlock2.classList.toggle('collapsed');
+        if (toggleInstance2Text) {
+          toggleInstance2Text.textContent = isCollapsed ? 'Show Comparison Slot' : 'Hide Comparison Slot';
+        }
+      });
+    }
+
+    // Scrubber Target Selector (Slot 1 vs Slot 2)
+    function setScrubberTarget(target) {
+      triggerHaptic('light');
+      activeScrubberTarget = target;
+      if (scrubTarget1) {
+        scrubTarget1.classList.toggle('active', target === 1);
+        scrubTarget1.setAttribute('aria-pressed', target === 1 ? 'true' : 'false');
+      }
+      if (scrubTarget2) {
+        scrubTarget2.classList.toggle('active', target === 2);
+        scrubTarget2.setAttribute('aria-pressed', target === 2 ? 'true' : 'false');
+      }
+      const timeVal = (target === 1 ? convTimeInput.value : (convTimeInput2 ? convTimeInput2.value : '00:00')) || '00:00';
+      const [h, m] = timeVal.split(':').map(Number);
+      if (!isNaN(h) && !isNaN(m) && hourScrubber) {
+        hourScrubber.value = h * 60 + m;
+      }
+    }
+    if (scrubTarget1) scrubTarget1.addEventListener('click', () => setScrubberTarget(1));
+    if (scrubTarget2) scrubTarget2.addEventListener('click', () => setScrubberTarget(2));
 
     // Scrubber 1-Minute & 5-Minute Stepper Buttons
     const scrubSub1m = document.getElementById('btnScrubSub1m');
@@ -1082,11 +1331,18 @@
       const m = minutes % 60;
       const hh = (h < 10 ? '0' : '') + h;
       const mm = (m < 10 ? '0' : '') + m;
-      convTimeInput.value = `${hh}:${mm}`;
-      runConversion();
+      if (activeScrubberTarget === 1) {
+        convTimeInput.value = `${hh}:${mm}`;
+        runConversion();
+      } else {
+        if (convTimeInput2) {
+          convTimeInput2.value = `${hh}:${mm}`;
+          runConversion2();
+        }
+      }
     });
 
-    // Copy Converted Time
+    // Copy Converted Time (Instance 1)
     copyConvertedBtn.addEventListener('click', async () => {
       triggerHaptic('medium');
       const textToCopy = `${targetTimeResult.textContent} • ${targetDateResult.textContent} (${targetOffsetBadge.textContent})`;
@@ -1099,13 +1355,40 @@
       }
     });
 
-    // Native Share Converted Time
+    // Native Share Converted Time (Instance 1)
     if (shareConvertedBtn) {
       shareConvertedBtn.addEventListener('click', () => {
         const srcText = `${sourceTitle.textContent}: ${convDateInput.value} ${convTimeInput.value} (${sourceOffsetBadge.textContent})`;
         const tgtText = `${targetTitle.textContent}: ${targetDateResult.textContent} ${targetTimeResult.textContent} (${targetOffsetBadge.textContent})`;
-        const summary = `🕒 TimeBridge Conversion\n• ${srcText}\n• ${tgtText}\nDifference: ${offsetSummaryText.textContent}`;
+        const summary = `🕒 TimeBridge Conversion (Slot 1)\n• ${srcText}\n• ${tgtText}\nDifference: ${offsetSummaryText.textContent}`;
         shareFormattedTime('TimeBridge Time Conversion', summary);
+      });
+    }
+
+    // Copy Converted Time (Instance 2)
+    if (copyConvertedBtn2) {
+      copyConvertedBtn2.addEventListener('click', async () => {
+        triggerHaptic('medium');
+        const textToCopy = `${targetTimeResult2.textContent} • ${targetDateResult2.textContent} (${targetOffsetBadge2.textContent})`;
+        try {
+          await navigator.clipboard.writeText(textToCopy);
+          if (copyAlert2) {
+            copyAlert2.classList.add('show');
+            setTimeout(() => copyAlert2.classList.remove('show'), 2500);
+          }
+        } catch (err) {
+          alert(`Copied: ${textToCopy}`);
+        }
+      });
+    }
+
+    // Native Share Converted Time (Instance 2)
+    if (shareConvertedBtn2) {
+      shareConvertedBtn2.addEventListener('click', () => {
+        const srcText = `${sourceTitle2.textContent}: ${convDateInput2.value} ${convTimeInput2.value} (${sourceOffsetBadge2.textContent})`;
+        const tgtText = `${targetTitle2.textContent}: ${targetDateResult2.textContent} ${targetTimeResult2.textContent} (${targetOffsetBadge2.textContent})`;
+        const summary = `🕒 TimeBridge Conversion (Slot 2)\n• ${srcText}\n• ${tgtText}\nDifference: ${offsetSummaryText2.textContent}`;
+        shareFormattedTime('TimeBridge Time Conversion (Slot 2)', summary);
       });
     }
 
@@ -1274,8 +1557,24 @@
     const h = istParts.hour24 < 10 ? '0' + istParts.hour24 : istParts.hour24;
     convTimeInput.value = `${h}:${istParts.minute}`;
 
+    // Initialize Instance 2 Inputs (Comparison Slot: +4 hours in IST)
+    if (convDateInput2 && convTimeInput2) {
+      const istDate = parseWallClockToUtc(istParts.isoDate, `${h}:${istParts.minute}`, 'IST');
+      if (istDate) {
+        const slot2Date = new Date(istDate.getTime() + 4 * 3600000);
+        const slot2Parts = getTzParts(slot2Date, 'IST');
+        convDateInput2.value = slot2Parts.isoDate;
+        const h2 = slot2Parts.hour24 < 10 ? '0' + slot2Parts.hour24 : slot2Parts.hour24;
+        convTimeInput2.value = `${h2}:${slot2Parts.minute}`;
+      } else {
+        convDateInput2.value = istParts.isoDate;
+        convTimeInput2.value = '18:30';
+      }
+    }
+
     syncConverterLabels();
     runConversion();
+    if (typeof runConversion2 === 'function') runConversion2();
     renderTimelineCells(istParts.hour24);
     renderOverlapMatrix();
 

@@ -38,40 +38,7 @@
       <div class="header-actions">
         <!-- Live Clocks -->
         <div class="live-clocks">
-          <!-- UTC Clock Tile -->
-          <div class="clock-card" id="utcClockCard">
-            <div class="clock-label">
-              <span class="flag-dot utc"></span>
-              <span class="tz-code">UTC</span>
-              <span class="utc-badge">UTC+0</span>
-            </div>
-            <div class="clock-time" id="utcLiveTime">--:--:--</div>
-            <div class="clock-date" id="utcLiveDate">Loading date...</div>
-          </div>
-
-          <!-- GMT Clock Tile -->
-          <div class="clock-card" id="gmtClockCard">
-            <div class="clock-label">
-              <span class="flag-dot gmt"></span>
-              <span class="tz-code">GMT (London)</span>
-              <span class="utc-badge" id="gmtOffsetBadge">UTC+0</span>
-            </div>
-            <div class="clock-time" id="gmtLiveTime">--:--:--</div>
-            <div class="clock-date" id="gmtLiveDate">Loading date...</div>
-          </div>
-
-          <!-- IST Clock Tile -->
-          <div class="clock-card" id="istClockCard">
-            <div class="clock-label">
-              <span class="flag-dot in"></span>
-              <span class="tz-code">IST (India)</span>
-              <span class="utc-badge">UTC+5:30</span>
-            </div>
-            <div class="clock-time" id="istLiveTime">--:--:--</div>
-            <div class="clock-date" id="istLiveDate">Loading date...</div>
-          </div>
-
-          <!-- CST Clock Tile -->
+          <!-- 1. CST Clock Tile -->
           <div class="clock-card" id="cstClockCard">
             <div class="clock-label">
               <span class="flag-dot us"></span>
@@ -82,7 +49,18 @@
             <div class="clock-date" id="cstLiveDate">Loading date...</div>
           </div>
 
-          <!-- EST Clock Tile -->
+          <!-- 2. IST Clock Tile -->
+          <div class="clock-card" id="istClockCard">
+            <div class="clock-label">
+              <span class="flag-dot in"></span>
+              <span class="tz-code">IST (India)</span>
+              <span class="utc-badge">UTC+5:30</span>
+            </div>
+            <div class="clock-time" id="istLiveTime">--:--:--</div>
+            <div class="clock-date" id="istLiveDate">Loading date...</div>
+          </div>
+
+          <!-- 3. EST Clock Tile -->
           <div class="clock-card" id="estClockCard">
             <div class="clock-label">
               <span class="flag-dot est"></span>
@@ -91,6 +69,39 @@
             </div>
             <div class="clock-time" id="estLiveTime">--:--:--</div>
             <div class="clock-date" id="estLiveDate">Loading date...</div>
+          </div>
+
+          <!-- 4. GMT Clock Tile -->
+          <div class="clock-card" id="gmtClockCard">
+            <div class="clock-label">
+              <span class="flag-dot gmt"></span>
+              <span class="tz-code">GMT (London)</span>
+              <span class="utc-badge" id="gmtOffsetBadge">UTC+0</span>
+            </div>
+            <div class="clock-time" id="gmtLiveTime">--:--:--</div>
+            <div class="clock-date" id="gmtLiveDate">Loading date...</div>
+          </div>
+
+          <!-- 5. UTC Clock Tile -->
+          <div class="clock-card" id="utcClockCard">
+            <div class="clock-label">
+              <span class="flag-dot utc"></span>
+              <span class="tz-code">UTC</span>
+              <span class="utc-badge">UTC+0</span>
+            </div>
+            <div class="clock-time" id="utcLiveTime">--:--:--</div>
+            <div class="clock-date" id="utcLiveDate">Loading date...</div>
+          </div>
+
+          <!-- 6. PST Clock Tile -->
+          <div class="clock-card" id="pstClockCard">
+            <div class="clock-label">
+              <span class="flag-dot pst"></span>
+              <span class="tz-code" id="pstLabelCode">PST (US Pacific)</span>
+              <span class="utc-badge" id="pstOffsetBadge">UTC-8</span>
+            </div>
+            <div class="clock-time" id="pstLiveTime">--:--:--</div>
+            <div class="clock-date" id="pstLiveDate">Loading date...</div>
           </div>
         </div>
 
@@ -158,109 +169,255 @@
           </div>
         </div>
 
-        <div class="converter-grid">
-          <!-- Source Input Box -->
-          <div class="card converter-card" id="sourceCard">
-            <div class="card-header">
-              <div class="card-title-group">
-                <span class="direction-tag" id="sourceTag">FROM</span>
-                <h3 class="card-title" id="sourceTitle">Indian Standard Time (IST)</h3>
+        <!-- Converter Instances Container -->
+        <div class="converter-instances-container">
+          <!-- ==================== INSTANCE 1 ==================== -->
+          <div class="converter-instance-block" id="instanceBlock1">
+            <div class="instance-title-bar">
+              <div class="instance-badge-group">
+                <span class="instance-chip primary">Instance 1</span>
+                <span class="instance-desc">Primary Conversion Slot</span>
               </div>
-              <span class="badge" id="sourceOffsetBadge">UTC +05:30</span>
+              <div class="instance-actions">
+                <button type="button" class="action-btn small-btn" id="btnSyncInstance2To1" title="Copy Date & Time to Instance 2">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                  <span>Copy to Instance 2</span>
+                </button>
+              </div>
             </div>
 
-            <div class="card-body">
-              <div class="input-row">
-                <div class="form-group flex-1">
-                  <label for="convDate">Date</label>
-                  <input type="date" id="convDate" class="form-input">
+            <div class="converter-grid">
+              <!-- Source Input Box (Instance 1) -->
+              <div class="card converter-card" id="sourceCard">
+                <div class="card-header">
+                  <div class="card-title-group">
+                    <span class="direction-tag" id="sourceTag">FROM</span>
+                    <h3 class="card-title" id="sourceTitle">Indian Standard Time (IST)</h3>
+                  </div>
+                  <span class="badge" id="sourceOffsetBadge">UTC +05:30</span>
                 </div>
-                <div class="form-group flex-1">
-                  <label for="convTime">Time</label>
-                  <input type="time" id="convTime" class="form-input" step="60">
+
+                <div class="card-body">
+                  <div class="input-row">
+                    <div class="form-group flex-1">
+                      <label for="convDate">Date</label>
+                      <input type="date" id="convDate" class="form-input">
+                    </div>
+                    <div class="form-group flex-1">
+                      <label for="convTime">Time</label>
+                      <input type="time" id="convTime" class="form-input" step="60">
+                    </div>
+                  </div>
+
+                  <!-- Quick Time Preset Chips -->
+                  <div class="chip-group">
+                    <span class="chip-label">Quick Set:</span>
+                    <button type="button" class="chip-btn" id="btnSetNow">Now</button>
+                    <button type="button" class="chip-btn" id="btnSub1m" title="Decrement 1 minute">-1m</button>
+                    <button type="button" class="chip-btn" id="btnAdd1m" title="Increment 1 minute">+1m</button>
+                    <button type="button" class="chip-btn" id="btnSub1h">-1h</button>
+                    <button type="button" class="chip-btn" id="btnAdd1h">+1h</button>
+                    <button type="button" class="chip-btn" id="btnMorning9">9:00 AM</button>
+                    <button type="button" class="chip-btn" id="btnAfternoon2">2:00 PM</button>
+                    <button type="button" class="chip-btn" id="btnEvening6">6:00 PM</button>
+                  </div>
+
+                  <!-- Working Hours status for source -->
+                  <div class="work-status-banner" id="sourceWorkStatus">
+                    <span class="status-indicator"></span>
+                    <span class="status-text">Checking business hours...</span>
+                  </div>
                 </div>
               </div>
 
-              <!-- Quick Time Preset Chips -->
-              <div class="chip-group">
-                <span class="chip-label">Quick Set:</span>
-                <button type="button" class="chip-btn" id="btnSetNow">Now</button>
-                <button type="button" class="chip-btn" id="btnSub1m" title="Decrement 1 minute">-1 min</button>
-                <button type="button" class="chip-btn" id="btnAdd1m" title="Increment 1 minute">+1 min</button>
-                <button type="button" class="chip-btn" id="btnSub1h">-1 hr</button>
-                <button type="button" class="chip-btn" id="btnAdd1h">+1 hr</button>
-                <button type="button" class="chip-btn" id="btnMorning9">9:00 AM</button>
-                <button type="button" class="chip-btn" id="btnAfternoon2">2:00 PM</button>
-                <button type="button" class="chip-btn" id="btnEvening6">6:00 PM</button>
+              <!-- Swap Button in the center (Instance 1) -->
+              <div class="converter-swap-wrapper">
+                <button id="swapDirectionBtn" class="swap-btn" title="Swap Conversion Direction (IST ⇄ CST)">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 16V4M7 4L3 8M7 4L11 8M17 8V20M17 20L21 16M17 20L13 16"/>
+                  </svg>
+                </button>
+                <span class="swap-caption">Swap</span>
               </div>
 
-              <!-- Working Hours status for source -->
-              <div class="work-status-banner" id="sourceWorkStatus">
-                <span class="status-indicator"></span>
-                <span class="status-text">Checking business hours...</span>
+              <!-- Target Output Box (Instance 1) -->
+              <div class="card converter-card highlight-card" id="targetCard">
+                <div class="card-header">
+                  <div class="card-title-group">
+                    <span class="direction-tag" id="targetTag">TO</span>
+                    <h3 class="card-title" id="targetTitle">Central Standard Time (CST)</h3>
+                  </div>
+                  <span class="badge" id="targetOffsetBadge">UTC -06:00</span>
+                </div>
+
+                <div class="card-body">
+                  <div class="converted-result-box">
+                    <div class="result-day-badge-wrap">
+                      <span class="day-rel-badge" id="dayRelativeBadge">Same Day</span>
+                      <span class="dst-pill" id="dstIndicatorPill">Standard Time (CST)</span>
+                    </div>
+
+                    <div class="big-time-display" id="targetTimeResult">10:23 AM</div>
+                    <div class="big-date-display" id="targetDateResult">Friday, Nov 13, 2026</div>
+
+                    <div class="offset-summary" id="offsetSummaryText">
+                      IST is 11 hours and 30 minutes ahead of CST
+                    </div>
+
+                    <!-- Companion US Timezone Display -->
+                    <div class="secondary-tz-wrap" style="margin-top: 10px;">
+                      <span class="secondary-tz-pill" id="secondaryTzPill">US Eastern (EST): 11:23 AM</span>
+                    </div>
+                  </div>
+
+                  <!-- Working Hours status for target -->
+                  <div class="work-status-banner" id="targetWorkStatus">
+                    <span class="status-indicator"></span>
+                    <span class="status-text">Checking business hours...</span>
+                  </div>
+
+                  <!-- Action buttons -->
+                  <div class="card-actions-row">
+                    <div class="action-btn-group">
+                      <button id="copyConvertedBtn" class="action-btn" type="button">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                        <span>Copy Result</span>
+                      </button>
+                      <button id="shareConvertedBtn" class="action-btn share-btn" type="button" title="Share via WhatsApp, Slack, Teams, etc.">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                        <span>Share</span>
+                      </button>
+                    </div>
+                    <div class="copy-alert" id="copyAlert">Copied to clipboard!</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- Swap Button in the center -->
-          <div class="converter-swap-wrapper">
-            <button id="swapDirectionBtn" class="swap-btn" title="Swap Conversion Direction (IST ⇄ CST)">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M7 16V4M7 4L3 8M7 4L11 8M17 8V20M17 20L21 16M17 20L13 16"/>
-              </svg>
-            </button>
-            <span class="swap-caption">Swap</span>
-          </div>
-
-          <!-- Target Output Box -->
-          <div class="card converter-card highlight-card" id="targetCard">
-            <div class="card-header">
-              <div class="card-title-group">
-                <span class="direction-tag" id="targetTag">TO</span>
-                <h3 class="card-title" id="targetTitle">Central Standard Time (CST)</h3>
+          <!-- ==================== INSTANCE 2 ==================== -->
+          <div class="converter-instance-block" id="instanceBlock2">
+            <div class="instance-title-bar">
+              <div class="instance-badge-group">
+                <span class="instance-chip secondary">Instance 2</span>
+                <span class="instance-desc">Second Comparison Slot</span>
               </div>
-              <span class="badge" id="targetOffsetBadge">UTC -06:00</span>
+              <div class="instance-actions">
+                <button type="button" class="action-btn small-btn" id="btnSyncDate2" title="Match date from Instance 1">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                  <span>Sync Date</span>
+                </button>
+                <button type="button" class="action-btn small-btn" id="btnToggleInstance2" title="Collapse or Expand Instance 2">
+                  <span id="toggleInstance2Text">Collapse</span>
+                </button>
+              </div>
             </div>
 
-            <div class="card-body">
-              <div class="converted-result-box">
-                <div class="result-day-badge-wrap">
-                  <span class="day-rel-badge" id="dayRelativeBadge">Same Day</span>
-                  <span class="dst-pill" id="dstIndicatorPill">Standard Time (CST)</span>
+            <div class="converter-grid">
+              <!-- Source Input Box (Instance 2) -->
+              <div class="card converter-card" id="sourceCard2">
+                <div class="card-header">
+                  <div class="card-title-group">
+                    <span class="direction-tag" id="sourceTag2">FROM</span>
+                    <h3 class="card-title" id="sourceTitle2">Indian Standard Time (IST)</h3>
+                  </div>
+                  <span class="badge" id="sourceOffsetBadge2">UTC +05:30</span>
                 </div>
 
-                <div class="big-time-display" id="targetTimeResult">10:23 AM</div>
-                <div class="big-date-display" id="targetDateResult">Friday, Nov 13, 2026</div>
+                <div class="card-body">
+                  <div class="input-row">
+                    <div class="form-group flex-1">
+                      <label for="convDate2">Date</label>
+                      <input type="date" id="convDate2" class="form-input">
+                    </div>
+                    <div class="form-group flex-1">
+                      <label for="convTime2">Time</label>
+                      <input type="time" id="convTime2" class="form-input" step="60">
+                    </div>
+                  </div>
 
-                <div class="offset-summary" id="offsetSummaryText">
-                  IST is 11 hours and 30 minutes ahead of CST
-                </div>
+                  <!-- Quick Time Preset Chips (Instance 2) -->
+                  <div class="chip-group">
+                    <span class="chip-label">Quick Set:</span>
+                    <button type="button" class="chip-btn" id="btnSetNow2">Now</button>
+                    <button type="button" class="chip-btn" id="btnSub1m2" title="Decrement 1 minute">-1m</button>
+                    <button type="button" class="chip-btn" id="btnAdd1m2" title="Increment 1 minute">+1m</button>
+                    <button type="button" class="chip-btn" id="btnSub1h2">-1h</button>
+                    <button type="button" class="chip-btn" id="btnAdd1h2">+1h</button>
+                    <button type="button" class="chip-btn" id="btnMorning9_2">9:00 AM</button>
+                    <button type="button" class="chip-btn" id="btnAfternoon2_2">2:00 PM</button>
+                    <button type="button" class="chip-btn" id="btnEvening6_2">6:00 PM</button>
+                  </div>
 
-                <!-- Companion US Timezone Display -->
-                <div class="secondary-tz-wrap" style="margin-top: 10px;">
-                  <span class="secondary-tz-pill" id="secondaryTzPill">US Eastern (EST): 11:23 AM</span>
+                  <!-- Working Hours status for source (Instance 2) -->
+                  <div class="work-status-banner" id="sourceWorkStatus2">
+                    <span class="status-indicator"></span>
+                    <span class="status-text">Checking business hours...</span>
+                  </div>
                 </div>
               </div>
 
-              <!-- Working Hours status for target -->
-              <div class="work-status-banner" id="targetWorkStatus">
-                <span class="status-indicator"></span>
-                <span class="status-text">Checking business hours...</span>
+              <!-- Swap Button in the center (Instance 2) -->
+              <div class="converter-swap-wrapper">
+                <button id="swapDirectionBtn2" class="swap-btn" title="Swap Conversion Direction (Instance 2)">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 16V4M7 4L3 8M7 4L11 8M17 8V20M17 20L21 16M17 20L13 16"/>
+                  </svg>
+                </button>
+                <span class="swap-caption">Swap</span>
               </div>
 
-              <!-- Action buttons -->
-              <div class="card-actions-row">
-                <div class="action-btn-group">
-                  <button id="copyConvertedBtn" class="action-btn" type="button">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                    <span>Copy Result</span>
-                  </button>
-                  <button id="shareConvertedBtn" class="action-btn share-btn" type="button" title="Share via WhatsApp, Slack, Teams, etc.">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
-                    <span>Share</span>
-                  </button>
+              <!-- Target Output Box (Instance 2) -->
+              <div class="card converter-card highlight-card" id="targetCard2">
+                <div class="card-header">
+                  <div class="card-title-group">
+                    <span class="direction-tag" id="targetTag2">TO</span>
+                    <h3 class="card-title" id="targetTitle2">Central Standard Time (CST)</h3>
+                  </div>
+                  <span class="badge" id="targetOffsetBadge2">UTC -06:00</span>
                 </div>
-                <div class="copy-alert" id="copyAlert">Copied to clipboard!</div>
+
+                <div class="card-body">
+                  <div class="converted-result-box">
+                    <div class="result-day-badge-wrap">
+                      <span class="day-rel-badge" id="dayRelativeBadge2">Same Day</span>
+                      <span class="dst-pill" id="dstIndicatorPill2">Standard Time (CST)</span>
+                    </div>
+
+                    <div class="big-time-display" id="targetTimeResult2">--:--</div>
+                    <div class="big-date-display" id="targetDateResult2">--</div>
+
+                    <div class="offset-summary" id="offsetSummaryText2">
+                      --
+                    </div>
+
+                    <!-- Companion US Timezone Display -->
+                    <div class="secondary-tz-wrap" style="margin-top: 10px;">
+                      <span class="secondary-tz-pill" id="secondaryTzPill2">--</span>
+                    </div>
+                  </div>
+
+                  <!-- Working Hours status for target (Instance 2) -->
+                  <div class="work-status-banner" id="targetWorkStatus2">
+                    <span class="status-indicator"></span>
+                    <span class="status-text">Checking business hours...</span>
+                  </div>
+
+                  <!-- Action buttons (Instance 2) -->
+                  <div class="card-actions-row">
+                    <div class="action-btn-group">
+                      <button id="copyConvertedBtn2" class="action-btn" type="button">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                        <span>Copy Result</span>
+                      </button>
+                      <button id="shareConvertedBtn2" class="action-btn share-btn" type="button" title="Share Instance 2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                        <span>Share</span>
+                      </button>
+                    </div>
+                    <div class="copy-alert" id="copyAlert2">Copied to clipboard!</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -272,6 +429,13 @@
             <div>
               <h3 class="card-title">Interactive 24-Hour Slider</h3>
               <p class="card-subtitle">Scrub across the day with 1-minute precision or use the ±1 min stepper buttons</p>
+              <div class="scrubber-target-selector">
+                <span class="scrubber-selector-label">Slider Controls:</span>
+                <div class="pill-segmented">
+                  <button type="button" class="scrub-tab active" id="scrubTarget1">Instance 1</button>
+                  <button type="button" class="scrub-tab" id="scrubTarget2">Instance 2</button>
+                </div>
+              </div>
             </div>
             <div class="legend-group">
               <span class="legend-item"><span class="legend-dot work"></span> Business Hours (9am-6pm)</span>

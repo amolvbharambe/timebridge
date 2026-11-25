@@ -48,14 +48,20 @@ jobs:
       - name: Publish to GitHub Releases
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.2
-          name: TimeBridge Android App v1.0.2
+          tag_name: v1.0.3
+          name: TimeBridge Android App v1.0.3
           body: |
-            ### 📱 TimeBridge Android APK (v1.0.2)
+            ### 📱 TimeBridge Android APK (v1.0.3)
 
             Download **TimeBridge.apk** below and tap it to install on your Android device.
 
-            > ℹ️ **Installation Tip:** If you previously had an earlier version installed, please uninstall it first so Android can install this release cleanly.
+            #### What's New:
+            - **Reordered Top Timezones**: CST, IST, EST, GMT, UTC, plus PST (US Pacific).
+            - **Dual Converter Instances**: Added a second conversion instance in the IST ⇄ CST converter for comparing two meeting/event slots side-by-side.
+            - **Interactive 24-Hour Scrubber Target Switcher**: Select whether the interactive slider adjusts Slot 1 or Slot 2.
+            - **AndroidX & Build Reliability**: Configured root and module `gradle.properties` for seamless builds.
+
+            > ℹ️ **Installation Tip:** If updating from an earlier test version, you can install directly over v1.0.2 or uninstall previous versions if prompted.
           files: android/dist/TimeBridge.apk
           make_latest: true
         env:
