@@ -1,5 +1,5 @@
 // TimeBridge Service Worker - Offline & Fast App Shell
-const CACHE_NAME = 'timebridge-v1';
+const CACHE_NAME = 'timebridge-v1.0.3';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
